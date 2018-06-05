@@ -12,23 +12,53 @@ public class ChessBoard {
                 switch (i){
                     case 0:
                         switch (j){
-                            case 0: case 7: chessboard[i][j]=man.B_ROOK;break;
-                            case 1: case 6: chessboard[i][j]=man.B_KNIGHT;break;
-                            case 2: case 5: chessboard[i][j]=man.B_BISHOP;break;
-                            case 3:chessboard[i][j]=man.B_KING;break;
-                            case 4:chessboard[i][j]=man.B_QUEEN;break;
+                            case 0:
+                            case 7:
+                                chessboard[i][j] = Man.B_ROOK;
+                                break;
+                            case 1:
+                            case 6:
+                                chessboard[i][j] = Man.B_KNIGHT;
+                                break;
+                            case 2:
+                            case 5:
+                                chessboard[i][j] = Man.B_BISHOP;
+                                break;
+                            case 3:
+                                chessboard[i][j] = Man.B_KING;
+                                break;
+                            case 4:
+                                chessboard[i][j] = Man.B_QUEEN;
+                                break;
                             default:break;
                         };
                         break;
 
-                    case 1:chessboard[i][j]=man.B_PAWN;break;
-                    case 6:chessboard[i][j]=man.W_PAWN;break;
+                    case 1:
+                        chessboard[i][j] = Man.B_PAWN;
+                        break;
+                    case 6:
+                        chessboard[i][j] = Man.W_PAWN;
+                        break;
                     case 7:switch (j){
-                        case 0: case 7: chessboard[i][j]=man.W_ROOK;break;
-                        case 1: case 6: chessboard[i][j]=man.W_KNIGHT;break;
-                        case 2: case 5: chessboard[i][j]=man.W_BISHOP;break;
-                        case 3:chessboard[i][j]=man.W_KING;break;
-                        case 4:chessboard[i][j]=man.W_QUEEN;break;
+                        case 0:
+                        case 7:
+                            chessboard[i][j] = Man.W_ROOK;
+                            break;
+                        case 1:
+                        case 6:
+                            chessboard[i][j] = Man.W_KNIGHT;
+                            break;
+                        case 2:
+                        case 5:
+                            chessboard[i][j] = Man.W_BISHOP;
+                            break;
+                        case 3:
+                            chessboard[i][j] = Man.W_KING;
+                            break;
+                        case 4:
+                            chessboard[i][j] = Man.W_QUEEN;
+                            break;
                         default:break;
                     };break;
                     default:break;
@@ -44,7 +74,8 @@ public class ChessBoard {
 
         }
         else if(move.isPromotion){
-            chessboard[move.fromY][move.fromX]=move.promotionType;
+            chessboard[move.toY][move.toX] = move.promotionType;
+            chessboard[move.fromY][move.fromX] = 0;
         }
     }
 
@@ -53,7 +84,8 @@ public class ChessBoard {
             chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
             chessboard[move.toY][move.toX] = nToID;
         } else {
-            chessboard[move.fromY][move.fromX] = nToID;
+            chessboard[move.toY][move.toX] = nToID;
+            chessboard[move.fromY][move.fromX] = move.fromY == 6 ? Man.B_PAWN : Man.W_PAWN;
         }
     }
     public int get(int Y,int X){

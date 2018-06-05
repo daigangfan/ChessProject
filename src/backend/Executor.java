@@ -80,12 +80,12 @@ public class Executor {
     }
 
     public boolean isBlack(int x) {
-        return x > man.W_QUEEN && x <= man.B_QUEEN;
+        return x > Man.W_QUEEN && x <= Man.B_QUEEN;
 
     }
 
     public boolean isWhite(int x) {
-        return x < man.B_PAWN && x > man.NONE;
+        return x < Man.B_PAWN && x > Man.NONE;
     }
 
     public void execute(Move move) {

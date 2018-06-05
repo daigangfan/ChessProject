@@ -1,6 +1,6 @@
 package backend;
 
-public class man {
+public class Man {
     /*棋子管理类
     * */
     public static final int NONE=0;
@@ -21,12 +21,12 @@ public class man {
     }
 
     public static boolean isBlack(int x) {
-        return x>man.W_QUEEN&&x<=man.B_QUEEN;
+        return x > Man.W_QUEEN && x <= Man.B_QUEEN;
 
     }
 
     public static boolean isWhite(int x) {
-        return x<man.B_PAWN&&x> man.NONE;
+        return x < Man.B_PAWN && x > Man.NONE;
     }
 
 }
