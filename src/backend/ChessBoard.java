@@ -2,7 +2,8 @@ package backend;
 
 public class ChessBoard {
     private int[][] chessboard;
-    private int side=0;
+
+    //电脑方向，0白1黑
     public ChessBoard(){
         chessboard=new int[8][8];
         for(int i=0;i<8;i++)
@@ -35,13 +36,7 @@ public class ChessBoard {
             }
     }
 
-    public int getSide() {
-        return side;
-    }
 
-    public void setSide(int side) {
-        this.side = side;
-    }
     public void execute(Move move){
         if(!move.isPromotion){
             chessboard[move.toY][move.toX]=chessboard[move.fromY][move.fromX];
@@ -50,6 +45,15 @@ public class ChessBoard {
         }
         else if(move.isPromotion){
             chessboard[move.fromY][move.fromX]=move.promotionType;
+        }
+    }
+
+    public void deExecute(Move move, int nToID) {
+        if (!move.isPromotion) {
+            chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
+            chessboard[move.toY][move.toX] = nToID;
+        } else {
+            chessboard[move.fromY][move.fromX] = nToID;
         }
     }
     public int get(int Y,int X){

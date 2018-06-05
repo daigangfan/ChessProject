@@ -17,13 +17,15 @@ public class man {
     public static final int B_KING=11;
     public static final int B_QUEEN=12;
     public static boolean isSameSide(int moveID,int targetID){//是否同一边
-        return (isBlack(moveID)&&isBlack(targetID))||(isWhite(moveID)&&isBlack(targetID));
-    };
-     static boolean isBlack(int x){
+        return (isBlack(moveID) && isBlack(targetID)) || (isWhite(moveID) && isWhite(targetID));
+    }
+
+    public static boolean isBlack(int x) {
         return x>man.W_QUEEN&&x<=man.B_QUEEN;
 
     }
-     static boolean isWhite(int x){
+
+    public static boolean isWhite(int x) {
         return x<man.B_PAWN&&x> man.NONE;
     }
 
