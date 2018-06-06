@@ -7,6 +7,7 @@ import backend.Move;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -49,23 +50,24 @@ class ChessBoardPane extends GridPane {
     boolean selecting = false;
     int selectedID = -1;
     int targetID = -1;
-
+    int side;
     public ChessBoardPane(int side) {
         super();
+        this.side = side;
         executor.setSide(side);
         if (side == 0) executor.makeMove();
-        renderPane(side);
+        renderPane();
 
     }
 
-    public void renderPane(int side) {
+    public void renderPane() {
 
         for (int i = 0; i < 8; i++)
             for (int j = 0; j < 8; j++) {
                 Group g = new Group();
                 Rectangle rect = new Rectangle(60, 60);
                 rect.setId(Integer.toString(i * 8 + j));
-                rect.setFill(Color.BLUEVIOLET);
+                rect.setFill(Color.BLUE);
                 if (i % 2 == 0 && j % 2 == 0) rect.setFill(Color.WHITE);
                 if (i % 2 == 1 && j % 2 == 1) rect.setFill(Color.WHITE);
 
@@ -88,88 +90,16 @@ class ChessBoardPane extends GridPane {
                                 event -> {
                                     if (!selecting) {
                                         selectedID = Integer.valueOf(((Rectangle) g.getChildren().get(0)).getId());
-                                        ((Rectangle) g.getChildren().get(0)).setStroke(Color.RED);
-                                        ((Rectangle) g.getChildren().get(0)).setStrokeWidth(3);
+                                        ((Rectangle) g.getChildren().get(0)).setFill(Color.RED);
+
                                         selecting = true;
-                                    }
-
-
-
+                                    } else handleStep(g);
                                 }
                         );
                     } else {
                         g.setOnMouseClicked(
                                 event -> {
-                                    if (selecting) {
-                                        targetID = Integer.valueOf(((Rectangle) g.getChildren().get(0)).getId());
-                                        if (selectedID >= 0) {
-                                            int fromX = selectedID % 8;
-                                            int fromY = selectedID / 8;
-                                            int toX = targetID % 8;
-                                            int toY = targetID / 8;
-                                            Move move = new Move(fromX, fromY, toX, toY);
-                                            //add promotion
-                                            if (executor.getChessBoard().get(fromY, fromX) == Man.B_PAWN && side == 0 && fromY == 6 && toY == 7) {
-                                                move.setPromotion(true);
-                                                Optional<String> result = new PromotionSelectWindow().showAndWait();
-                                                while (!result.isPresent()) {
-                                                    result = new PromotionSelectWindow().showAndWait();
-                                                }
-                                                switch (result.get()) {
-                                                    case "Queen":
-                                                        move.setPromotionType(Man.B_QUEEN);
-                                                        break;
-                                                    case "Rook":
-                                                        move.setPromotionType(Man.B_ROOK);
-                                                        break;
-                                                    case "Bishop":
-                                                        move.setPromotionType(Man.B_BISHOP);
-                                                        break;
-                                                    case "Knight":
-                                                        move.setPromotionType(Man.B_KNIGHT);
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            }
-                                            if (executor.getChessBoard().get(fromY, fromX) == Man.W_PAWN && side == 1 && fromY == 1 && toY == 0) {
-                                                move.setPromotion(true);
-                                                Optional<String> result = new PromotionSelectWindow().showAndWait();
-                                                while (!result.isPresent()) {
-                                                    result = new PromotionSelectWindow().showAndWait();
-                                                }
-                                                switch (result.get()) {
-                                                    case "Queen":
-                                                        move.setPromotionType(Man.W_QUEEN);
-                                                        break;
-                                                    case "Rook":
-                                                        move.setPromotionType(Man.W_ROOK);
-                                                        break;
-                                                    case "Bishop":
-                                                        move.setPromotionType(Man.W_BISHOP);
-                                                        break;
-                                                    case "Knight":
-                                                        move.setPromotionType(Man.W_KNIGHT);
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            }
-
-
-                                            if (!executor.isValidMove(move)) {
-                                                new Alert(Alert.AlertType.ERROR, "invalid move").show();
-                                                selecting = false;
-                                            }
-                                            if (executor.isValidMove(move)) {
-                                                executor.execute(move);
-                                                renderPane(side);
-                                                executor.makeMove();
-                                                renderPane(side);
-                                                selecting = false;
-                                            }
-                                        }
-                                    }
+                                    handleStep(g);
                                 }
                         );
                     }
@@ -177,82 +107,105 @@ class ChessBoardPane extends GridPane {
                 }
                 this.add(rect, j, i);
                 rect.setOnMouseClicked(event -> {
-                    if (selecting) {
-                        targetID = Integer.valueOf(rect.getId());
-                        if (selectedID >= 0) {
-                            int fromX = selectedID % 8;
-                            int fromY = selectedID / 8;
-                            int toX = targetID % 8;
-                            int toY = targetID / 8;
-                            Move move = new Move(fromX, fromY, toX, toY);
-                            //add promotion
-                            if (executor.getChessBoard().get(fromY, fromX) == Man.B_PAWN && side == 0 && fromY == 6 && toY == 7) {
-                                move.setPromotion(true);
-                                Optional<String> result = new PromotionSelectWindow().showAndWait();
-                                while (!result.isPresent()) {
-                                    result = new PromotionSelectWindow().showAndWait();
-                                }
-                                switch (result.get()) {
-                                    case "Queen":
-                                        move.setPromotionType(Man.B_QUEEN);
-                                        break;
-                                    case "Rook":
-                                        move.setPromotionType(Man.B_ROOK);
-                                        break;
-                                    case "Bishop":
-                                        move.setPromotionType(Man.B_BISHOP);
-                                        break;
-                                    case "Knight":
-                                        move.setPromotionType(Man.B_KNIGHT);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-                            if (executor.getChessBoard().get(fromY, fromX) == Man.W_PAWN && side == 1 && fromY == 1 && toY == 0) {
-                                move.setPromotion(true);
-                                Optional<String> result = new PromotionSelectWindow().showAndWait();
-                                while (!result.isPresent()) {
-                                    result = new PromotionSelectWindow().showAndWait();
-                                }
-                                switch (result.get()) {
-                                    case "Queen":
-                                        move.setPromotionType(Man.W_QUEEN);
-                                        break;
-                                    case "Rook":
-                                        move.setPromotionType(Man.W_ROOK);
-                                        break;
-                                    case "Bishop":
-                                        move.setPromotionType(Man.W_BISHOP);
-                                        break;
-                                    case "Knight":
-                                        move.setPromotionType(Man.W_KNIGHT);
-                                        break;
-                                    default:
-                                        break;
-                                }
-                            }
-
-
-                            if (!executor.isValidMove(move)) {
-                                new Alert(Alert.AlertType.ERROR, "invalid move").show();
-                                selecting = false;
-                            }
-                            if (executor.isValidMove(move)) {
-                                executor.execute(move);
-                                renderPane(side);
-                                executor.makeMove();
-                                renderPane(side);
-                                selecting = false;
-                            }
-                        }
-                    }
+                    handleStep(rect);
                 });
 
             }
 
     }
-}
+
+    private void handleStep(Node node) {
+
+        if (selecting) {
+            if (node instanceof Rectangle) {
+                Rectangle target = (Rectangle) node;
+                targetID = Integer.valueOf(target.getId());
+            } else {
+                if (node instanceof Group) {
+                    Group target = (Group) node;
+                    targetID = Integer.valueOf(((Rectangle) target.getChildren().get(0)).getId());
+                }
+            }
+            if (selectedID >= 0) {
+                int fromX = selectedID % 8;
+                int fromY = selectedID / 8;
+                int toX = targetID % 8;
+                int toY = targetID / 8;
+                Move move = new Move(fromX, fromY, toX, toY);
+                //add promotion
+                if (executor.getChessBoard().get(fromY, fromX) == Man.B_PAWN && side == 0 && fromY == 6 && toY == 7) {
+                    move.setPromotion(true);
+                    Optional<String> result = new PromotionSelectWindow().showAndWait();
+                    while (!result.isPresent()) {
+                        result = new PromotionSelectWindow().showAndWait();
+                    }
+                    switch (result.get()) {
+                        case "Queen":
+                            move.setPromotionType(Man.B_QUEEN);
+                            break;
+                        case "Rook":
+                            move.setPromotionType(Man.B_ROOK);
+                            break;
+                        case "Bishop":
+                            move.setPromotionType(Man.B_BISHOP);
+                            break;
+                        case "Knight":
+                            move.setPromotionType(Man.B_KNIGHT);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                if (executor.getChessBoard().get(fromY, fromX) == Man.W_PAWN && side == 1 && fromY == 1 && toY == 0) {
+                    move.setPromotion(true);
+                    Optional<String> result = new PromotionSelectWindow().showAndWait();
+                    while (!result.isPresent()) {
+                        result = new PromotionSelectWindow().showAndWait();
+                    }
+                    switch (result.get()) {
+                        case "Queen":
+                            move.setPromotionType(Man.W_QUEEN);
+                            break;
+                        case "Rook":
+                            move.setPromotionType(Man.W_ROOK);
+                            break;
+                        case "Bishop":
+                            move.setPromotionType(Man.W_BISHOP);
+                            break;
+                        case "Knight":
+                            move.setPromotionType(Man.W_KNIGHT);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+
+                if (!executor.isValidMove(move)) {
+                    if (executor.isWhite(executor.getChessBoard().get(toY, toX)) && side == 1) renderPane();
+                    else if (executor.isBlack(executor.getChessBoard().get(toY, toX)) && side == 0) renderPane();
+
+                    else {
+                        new Alert(Alert.AlertType.ERROR, "invalid move").show();
+                        renderPane();
+
+                    }
+                    selecting = false;
+                }
+                if (executor.isValidMove(move)) {
+                    executor.execute(move);
+                    renderPane();
+
+                    executor.makeMove();
+                    renderPane();
+                    selecting = false;
+                }
+            }
+        }
+    }
+
+    }
+
 
 class ImageViewWithSide extends ImageView {
     private int side;
