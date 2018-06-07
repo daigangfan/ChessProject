@@ -6,6 +6,8 @@ import backend.Man;
 import backend.Move;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.event.Event;
+import javafx.event.EventType;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -13,6 +15,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -36,7 +39,23 @@ public class Main extends Application {
             int side;
             if (cb.getValue() == "white") side = 1;
             else side = 0;
-            Scene playScene = new Scene(new ChessBoardPane(side));
+            ChessBoardPane chessBoardPane = new ChessBoardPane(side);
+            HBox newHBox = new HBox();
+            Button longCastling = new Button("长易位");
+            longCastling.setOnMouseClicked(event1 -> {
+                longCastling.fireEvent(new CastlingEvent(CastlingEvent.longCastlingEvent));
+            });
+
+            Button shortCastling = new Button("短易位");
+            shortCastling.setOnMouseClicked(event1 -> {
+                shortCastling.fireEvent(new CastlingEvent(CastlingEvent.shortCastlingEvent));
+            });
+            VBox vBox = new VBox(longCastling, shortCastling);
+            newHBox.getChildren().addAll(chessBoardPane, vBox);
+            newHBox.addEventHandler(CastlingEvent.CastlingEventType, event1 -> {
+                chessBoardPane.HandlingCastleEvent(event1);
+            });
+            Scene playScene = new Scene(newHBox);
             primaryStage.setScene(playScene);
         });
         primaryStage.setScene(startScene);
@@ -55,12 +74,6 @@ class ChessBoardPane extends GridPane {
         super();
         this.side = side;
         executor.setSide(side);
-        if (side == 0) executor.makeMove();
-        renderPane();
-
-    }
-
-    public void renderPane() {
 
         for (int i = 0; i < 8; i++)
             for (int j = 0; j < 8; j++) {
@@ -70,52 +83,66 @@ class ChessBoardPane extends GridPane {
                 rect.setFill(Color.BLUE);
                 if (i % 2 == 0 && j % 2 == 0) rect.setFill(Color.WHITE);
                 if (i % 2 == 1 && j % 2 == 1) rect.setFill(Color.WHITE);
+                ImageViewWithSide iv = new ImageViewWithSide();
+                iv.setFitHeight(60);
+                iv.setFitWidth(60);
+                g.getChildren().addAll(rect, iv);
 
+                g.setOnMouseClicked(
+                        event -> {
+                            System.out.println("clicked!");
+                            System.out.println(((ImageViewWithSide) g.getChildren().get(1)).getSide());
+                            System.out.println(side);
+                            System.out.println(selecting);
+                            if (!selecting) {
+                                System.out.println(((ImageViewWithSide) g.getChildren().get(1)).getSide());
+                                System.out.println(side);
+                                if (((ImageViewWithSide) g.getChildren().get(1)).getSide() != this.side && ((ImageViewWithSide) g.getChildren().get(1)).getSide() >= 0) {
+                                    selectedID = Integer.valueOf(((Rectangle) g.getChildren().get(0)).getId());
+                                    ((Rectangle) g.getChildren().get(0)).setFill(Color.RED);
 
-                int man = executor.getChessBoard().get(i, j);
-                if (man > 0) {
-                    Image image = new Image("resource/" + Integer.toString(man) + ".png");
-                    ImageViewWithSide iv = new ImageViewWithSide(image);
-                    if (executor.isWhite(man)) {
-                        iv.setSide(0);
-                    } else {
-                        iv.setSide(1);
-                    }
-                    iv.setFitHeight(60);
-                    iv.setFitWidth(60);
-                    g.getChildren().addAll(rect, iv);
-                    this.add(g, j, i);
-                    if (iv.getSide() != side) {
-                        g.setOnMouseClicked(
-                                event -> {
-                                    if (!selecting) {
-                                        selectedID = Integer.valueOf(((Rectangle) g.getChildren().get(0)).getId());
-                                        ((Rectangle) g.getChildren().get(0)).setFill(Color.RED);
-
-                                        selecting = true;
-                                    } else handleStep(g);
+                                    selecting = true;
                                 }
-                        );
-                    } else {
-                        g.setOnMouseClicked(
-                                event -> {
-                                    handleStep(g);
-                                }
-                        );
-                    }
-                    continue;
-                }
-                this.add(rect, j, i);
-                rect.setOnMouseClicked(event -> {
-                    handleStep(rect);
-                });
+
+                            } else handleStep(g);
+                        }
+                );
+                this.add(g, j, i);
+
 
             }
+        if (side == 0) executor.makeMove();
+        renderPane(false);
+        this.addEventHandler(StepFinishedEvent.STEP_FINISHED_EVENT_EVENT_TYPE, event -> {
+            this.executor.makeMove();
+            renderPane(false);
+        });
+
+    }
+
+    public void renderPane(boolean isAfterStep) {
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++) {
+                if (executor.getChessBoard().get(i, j) > 0) {
+                    ((ImageViewWithSide) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(1)).setSide(executor.getChessBoard().get(i, j) >= Man.B_PAWN ? 1 : 0);
+                    ((ImageViewWithSide) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(1)).setImage(new Image("resource/" + Integer.toString(executor.getChessBoard().get(i, j)) + ".png"));
+
+                    }
+                if (executor.getChessBoard().get(i, j) == 0) {
+                    ((ImageViewWithSide) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(1)).setImage(null);
+                    }
+                ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.BLUE);
+                if (i % 2 == 0 && j % 2 == 0)
+                    ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.WHITE);
+                if (i % 2 == 1 && j % 2 == 1)
+                    ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.WHITE);
+                }
+        super.updateBounds();
+        if (isAfterStep) this.fireEvent(new StepFinishedEvent());
 
     }
 
     private void handleStep(Node node) {
-
         if (selecting) {
             if (node instanceof Rectangle) {
                 Rectangle target = (Rectangle) node;
@@ -179,39 +206,93 @@ class ChessBoardPane extends GridPane {
                             break;
                     }
                 }
-
-
                 if (!executor.isValidMove(move)) {
-                    if (executor.isWhite(executor.getChessBoard().get(toY, toX)) && side == 1) renderPane();
-                    else if (executor.isBlack(executor.getChessBoard().get(toY, toX)) && side == 0) renderPane();
+                    if (executor.isWhite(executor.getChessBoard().get(toY, toX)) && side == 1) renderPane(false);
+                    else if (executor.isBlack(executor.getChessBoard().get(toY, toX)) && side == 0) renderPane(false);
 
                     else {
-                        new Alert(Alert.AlertType.ERROR, "invalid move").show();
-                        renderPane();
 
+                        new Alert(Alert.AlertType.ERROR, "invalid move").show();
+                        renderPane(false);
+                        ;
                     }
                     selecting = false;
                 }
                 if (executor.isValidMove(move)) {
                     executor.execute(move);
-                    renderPane();
-
-                    executor.makeMove();
-                    renderPane();
+                    renderPane(true);
                     selecting = false;
                 }
             }
         }
     }
 
+    public void HandlingCastleEvent(CastlingEvent event) {
+        EventType<? extends CastlingEvent> type = event.getEventType();
+
+        if (type.getName().equals("longCastling")) {
+            if (side == 0) {
+                Move move = new Move(4, 0, 2, 0);
+                move.setLongCastling(true);
+                if (executor.isValidMove(move)) executor.execute(move);
+                else {
+                    new Alert(Alert.AlertType.ERROR, "现在不可以进行易位！").show();
+
+                    return;
+                }
+                renderPane(true);
+
+                selecting = false;
+            }
+            if (side == 1) {
+                Move move = new Move(4, 7, 2, 7);
+                move.setLongCastling(true);
+                if (executor.isValidMove(move)) executor.execute(move);
+                else {
+                    new Alert(Alert.AlertType.ERROR, "现在不可以进行易位！").show();
+                    return;
+                }
+                renderPane(true);
+
+            }
+        } else if (type.getName().equals("shortCastling")) {
+            if (side == 0) {
+                Move move = new Move(4, 0, 6, 0);
+                move.setShortCastling(true);
+                if (executor.isValidMove(move)) executor.execute(move);
+                else {
+                    new Alert(Alert.AlertType.ERROR, "现在不可以进行易位！").show();
+                    return;
+                }
+                renderPane(true);
+
+                selecting = false;
+            }
+            if (side == 1) {
+                Move move = new Move(4, 7, 6, 7);
+                move.setShortCastling(true);
+                if (executor.isValidMove(move)) executor.execute(move);
+                else {
+                    new Alert(Alert.AlertType.ERROR, "现在不可以进行易位！").show();
+                    return;
+                }
+                renderPane(true);
+                selecting = false;
+            }
+        }
+    }
     }
 
 
 class ImageViewWithSide extends ImageView {
-    private int side;
+    private int side = -1;
 
     public ImageViewWithSide(Image image) {
         super(image);
+    }
+
+    public ImageViewWithSide() {
+        super();
     }
 
     public int getSide() {
@@ -230,5 +311,29 @@ class PromotionSelectWindow extends ChoiceDialog {
         this.setTitle("Promotion Select Window");
         this.setContentText("please select the type to promotion");
 
+    }
+}
+
+class CastlingEvent extends Event {
+    public static final EventType<CastlingEvent> CastlingEventType = new EventType<>(EventType.ROOT);
+    public static final EventType<CastlingEvent> shortCastlingEvent = new EventType<>(CastlingEventType, "shortCastling");
+    public static final EventType<CastlingEvent> longCastlingEvent = new EventType<>(CastlingEventType, "longCastling");
+
+    public CastlingEvent(EventType<? extends CastlingEvent> eventType) {
+        super(eventType);
+
+    }
+
+    @Override
+    public EventType<? extends CastlingEvent> getEventType() {
+        return (EventType<? extends CastlingEvent>) super.getEventType();
+    }
+}
+
+class StepFinishedEvent extends Event {
+    public static final EventType<StepFinishedEvent> STEP_FINISHED_EVENT_EVENT_TYPE = new EventType<>(EventType.ROOT, "STEP_FINISHED");
+
+    public StepFinishedEvent() {
+        super(STEP_FINISHED_EVENT_EVENT_TYPE);
     }
 }

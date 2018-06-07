@@ -5,16 +5,15 @@ public class MoveGenerator {
     int[][]Bthreaten=new int[8][8];
     int[][]Wthreaten=new int[8][8];
     private static int[] types = {Man.W_QUEEN, Man.W_BISHOP, Man.W_KNIGHT, Man.W_ROOK};
+    boolean canWhiteShortCastling = true;
+    boolean canBlackShortCastling = true;
+    boolean canWhiteLongCastling = true;
+    boolean canBlackLongCastling = true;
     public static void main(String[] args) {
         // unit test
         ChessBoard chessBoard = new ChessBoard();
         MoveGenerator g = new MoveGenerator();
         g.updateThreatenMatrix(chessBoard);
-        Move move = new Move(1, 1, 1, 2);
-        System.out.println(g.isValidMove(chessBoard, move));
-        chessBoard.execute(move);
-        ArrayList<Move> x = g.generateAllMoves(chessBoard, 0);
-        System.out.println(x.size());
 
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
@@ -42,7 +41,7 @@ public class MoveGenerator {
 
     private void updateThreatenMatrix(ChessBoard chessBoard){
         //TODO: check the subscription.
-        int x,y;
+        int x, y, t;
         for(int i=0;i<8;i++)
             for(int j=0;j<8;j++){
             Bthreaten[i][j]=0;
@@ -53,15 +52,19 @@ public class MoveGenerator {
 
             switch (chessBoard.get(i,j)){
                 case Man.B_PAWN:
-                    if (i + 1 < 8 && j + 1 < 8) if (chessBoard.get(i + 1, j + 1) == Man.NONE) Wthreaten[i + 1][j + 1]++;
+                    if (i + 1 < 8 && j + 1 < 8) Wthreaten[i + 1][j + 1]++;
                     if (j - 1 >= 0 && i + 1 < 8)
-                        if (chessBoard.get(i + 1, j - 1) == Man.NONE) Wthreaten[i + 1][j - 1]++;
+                        Wthreaten[i + 1][j - 1]++;
                     break;
                 case Man.B_ROOK:
-                    for (int t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Wthreaten[t][j]++;
-                    for (int t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Wthreaten[t][j]++;
-                    for (int t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Wthreaten[i][t]++;
-                    for (int t = j - 1; t > 0 && chessBoard.get(i, t) == Man.NONE; t--) Wthreaten[i][t]--;
+                    for (t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Wthreaten[t][j]++;
+                    if (t < 8) Wthreaten[t][j]++;
+                    for (t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Wthreaten[t][j]++;
+                    if (t >= 0) Wthreaten[t][j]++;
+                    for (t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Wthreaten[i][t]++;
+                    if (t < 8) Wthreaten[i][t]++;
+                    for (t = j - 1; t >= 0 && chessBoard.get(i, t) == Man.NONE; t--) Wthreaten[i][t]++;
+                    if (t >= 0) Wthreaten[i][t]++;
                     break;
                 case Man.B_BISHOP:
                     x=i+1;
@@ -71,66 +74,78 @@ public class MoveGenerator {
                         x++;
                         y++;
                     }
+                    if (x < 8 && y < 8) Wthreaten[x][y]++;
+                    
                     x=i-1;y=j-1;
                     while (x >= 0 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Wthreaten[x][y]++;
                         x--;
                         y--;
                     }
+                    if (x >= 0 && y >= 0) Wthreaten[x][y]++;
+                    
                     x=i-1;y=j+1;
                     while (x >= 0 && y < 8 && chessBoard.get(x, y) == Man.NONE) {
                         Wthreaten[x][y]++;
                         x--;
                         y++;
                     }
+                    if (x >= 0 && y < 8) Wthreaten[x][y]++;
+                    
                     x=i+1;y=j-1;
                     while (x < 8 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Wthreaten[x][y]++;
                         x++;
                         y--;
                     }
+                    if (x < 8 && y >= 0) Wthreaten[x][y]++;
                     break;
                 case Man.B_KNIGHT:
-                    if (i >= 1 && j >= 2 && chessBoard.get(i - 1, j - 2) == Man.NONE)
+                    if (i >= 1 && j >= 2)
                         Wthreaten[i-1][j-2]++;
-                    if (i < 7 && j >= 2 && chessBoard.get(i + 1, j - 2) == Man.NONE)
+                    if (i < 7 && j >= 2)
                         Wthreaten[i+1][j-2]++;
-                    if (i < 7 && j < 6 && chessBoard.get(i + 1, j + 2) == Man.NONE)
+                    if (i < 7 && j < 6)
                         Wthreaten[i+1][j+2]++;
-                    if (i >= 1 && j < 6 && chessBoard.get(i - 1, j + 2) == Man.NONE)
+                    if (i >= 1 && j < 6)
                         Wthreaten[i-1][j+2]++;
-                    if (i >= 2 && j >= 1 && chessBoard.get(i - 2, j - 1) == Man.NONE)
+                    if (i >= 2 && j >= 1)
                         Wthreaten[i-2][j-1]++;
-                    if (i < 6 && j >= 1 && chessBoard.get(i + 2, j - 1) == Man.NONE)
+                    if (i < 6 && j >= 1)
                         Wthreaten[i+2][j-1]++;
-                    if (i >= 2 && j < 7 && chessBoard.get(i - 2, j + 1) == Man.NONE)
+                    if (i >= 2 && j < 7)
                         Wthreaten[i-2][j+1]++;
-                    if (i < 6 && j < 7 && chessBoard.get(i + 2, j + 1) == Man.NONE)
+                    if (i < 6 && j < 7)
                         Wthreaten[i+2][j+1]++;
                     break;
                 case Man.B_KING:
-                    if (i >= 1 && j >= 1 && chessBoard.get(i - 1, j - 1) == Man.NONE)
+                    if (i >= 1 && j >= 1)
                         Wthreaten[i-1][j-1]++;
-                    if (i < 7 && j >= 1 && chessBoard.get(i + 1, j - 1) == Man.NONE)
+                    if (i < 7 && j >= 1)
                         Wthreaten[i+1][j-1]++;
-                    if (i >= 1 && j < 7 && chessBoard.get(i - 1, j + 1) == Man.NONE)
+                    if (i >= 1 && j < 7)
                         Wthreaten[i-1][j+1]++;
-                    if (i >= 1 && j >= 1 && chessBoard.get(i - 1, j - 1) == Man.NONE)
+                    if (i >= 1 && j >= 1)
                         Wthreaten[i+1][j+1]++;
-                    if (i >= 1 && chessBoard.get(i - 1, j) == Man.NONE)
+                    if (i >= 1)
                         Wthreaten[i-1][j]++;
-                    if (i < 7 && chessBoard.get(i + 1, j) == Man.NONE)
+                    if (i < 7)
                         Wthreaten[i+1][j]++;
-                    if (j < 7 && chessBoard.get(i, j + 1) == Man.NONE)
+                    if (j < 7)
                         Wthreaten[i][j+1]++;
-                    if (j >= 1 && chessBoard.get(i, j - 1) == Man.NONE)
+                    if (j >= 1)
                         Wthreaten[i][j-1]++;
                     break;
                 case Man.B_QUEEN:
-                    for (int t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Wthreaten[t][j]++;
-                    for (int t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Wthreaten[t][j]++;
-                    for (int t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Wthreaten[i][t]++;
-                    for (int t = j - 1; t > 0 && chessBoard.get(i, t) == Man.NONE; t--) Wthreaten[i][t]--;
+                    for (t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Wthreaten[t][j]++;
+                    if (t < 8) Wthreaten[t][j]++;
+                    for (t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Wthreaten[t][j]++;
+                    if (t >= 0) Wthreaten[t][j]++;
+                    for (t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Wthreaten[i][t]++;
+                    if (t < 8) Wthreaten[i][t]++;
+                    for (t = j - 1; t >= 0 && chessBoard.get(i, t) == Man.NONE; t--) Wthreaten[i][t]++;
+                    if (t >= 0) Wthreaten[i][t]++;
+
                     x=i+1;
                     y=j+1;
                     while (x < 8 && y < 8 && chessBoard.get(x, y) == Man.NONE) {
@@ -138,36 +153,47 @@ public class MoveGenerator {
                         x++;
                         y++;
                     }
+                    if (x < 8 && y < 8) Wthreaten[x][y]++;
+
                     x=i-1;y=j-1;
                     while (x >= 0 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Wthreaten[x][y]++;
                         x--;
                         y--;
                     }
+                    if (x >= 0 && y >= 0) Wthreaten[x][y]++;
+
                     x=i-1;y=j+1;
                     while (x >= 0 && y < 8 && chessBoard.get(x, y) == Man.NONE) {
                         Wthreaten[x][y]++;
                         x--;
                         y++;
                     }
+                    if (x >= 0 && y < 8) Wthreaten[x][y]++;
+
                     x=i+1;y=j-1;
                     while (x < 8 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Wthreaten[x][y]++;
                         x++;
                         y--;
                     }
+                    if (x < 8 && y >= 0) Wthreaten[x][y]++;
                     break;
                 case Man.W_PAWN:
                     if (i - 1 >= 0 && j + 1 < 8)
-                        if (chessBoard.get(i - 1, j + 1) == Man.NONE) Bthreaten[i - 1][j + 1]++;
+                        Bthreaten[i - 1][j + 1]++;
                     if (i - 1 >= 0 && j - 1 >= 0)
-                        if (chessBoard.get(i - 1, j - 1) == Man.NONE) Bthreaten[i - 1][j - 1]++;
+                        Bthreaten[i - 1][j - 1]++;
                     break;
                 case Man.W_ROOK:
-                    for (int t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Bthreaten[t][j]++;
-                    for (int t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Bthreaten[t][j]++;
-                    for (int t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Bthreaten[i][t]++;
-                    for (int t = j - 1; t > 0 && chessBoard.get(i, t) == Man.NONE; t--) Bthreaten[i][t]--;
+                    for (t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Bthreaten[t][j]++;
+                    if (t < 8) Bthreaten[t][j]++;
+                    for (t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Bthreaten[t][j]++;
+                    if (t >= 0) Bthreaten[t][j]++;
+                    for (t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Bthreaten[i][t]++;
+                    if (t < 8) Bthreaten[i][t]++;
+                    for (t = j - 1; t >= 0 && chessBoard.get(i, t) == Man.NONE; t--) Bthreaten[i][t]++;
+                    if (t >= 0) Bthreaten[i][t]++;
                     break;
                 case Man.W_BISHOP:
                     x=i+1;
@@ -177,66 +203,78 @@ public class MoveGenerator {
                         x++;
                         y++;
                     }
+                    if (x < 8 && y < 8) Bthreaten[x][y]++;
+
                     x=i-1;y=j-1;
                     while (x >= 0 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Bthreaten[x][y]++;
                         x--;
                         y--;
                     }
+                    if (x >= 0 && y >= 0) Bthreaten[x][y]++;
+
                     x=i-1;y=j+1;
                     while (x >= 0 && y < 8 && chessBoard.get(x, y) == Man.NONE) {
                         Bthreaten[x][y]++;
                         x--;
                         y++;
                     }
+                    if (x >= 0 && y < 8) Bthreaten[x][y]++;
+
                     x=i+1;y=j-1;
                     while (x < 8 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Bthreaten[x][y]++;
                         x++;
                         y--;
                     }
+                    if (x < 8 && y >= 0) Bthreaten[x][y]++;
                     break;
                 case Man.W_KNIGHT:
-                    if (i >= 1 && j >= 2 && chessBoard.get(i - 1, j - 2) == Man.NONE)
+                    if (i >= 1 && j >= 2)
                         Bthreaten[i-1][j-2]++;
-                    if (i < 7 && j >= 2 && chessBoard.get(i + 1, j - 2) == Man.NONE)
+                    if (i < 7 && j >= 2)
                         Bthreaten[i+1][j-2]++;
-                    if (i < 7 && j < 6 && chessBoard.get(i + 1, j + 2) == Man.NONE)
+                    if (i < 7 && j < 6)
                         Bthreaten[i+1][j+2]++;
-                    if (i >= 1 && j < 6 && chessBoard.get(i - 1, j + 2) == Man.NONE)
+                    if (i >= 1 && j < 6)
                         Bthreaten[i-1][j+2]++;
-                    if (i >= 2 && j >= 1 && chessBoard.get(i - 2, j - 1) == Man.NONE)
+                    if (i >= 2 && j >= 1)
                         Bthreaten[i-2][j-1]++;
-                    if (i < 6 && j >= 1 && chessBoard.get(i + 2, j - 1) == Man.NONE)
+                    if (i < 6 && j >= 1)
                         Bthreaten[i+2][j-1]++;
-                    if (i < 6 && j < 7 && chessBoard.get(i + 2, j + 1) == Man.NONE)
+                    if (i < 6 && j < 7)
                         Bthreaten[i+2][j+1]++;
-                    if (i >= 2 && j < 7 && chessBoard.get(i - 2, j + 1) == Man.NONE)
+                    if (i >= 2 && j < 7)
                         Bthreaten[i-2][j+1]++;
                     break;
                 case Man.W_KING:
-                    if (i >= 1 && j >= 1 && chessBoard.get(i - 1, j - 1) == Man.NONE)
+                    if (i >= 1 && j >= 1)
                         Bthreaten[i-1][j-1]++;
-                    if (i < 7 && j >= 1 && chessBoard.get(i + 1, j - 1) == Man.NONE)
+                    if (i < 7 && j >= 1)
                         Bthreaten[i+1][j-1]++;
-                    if (i >= 1 && j < 7 && chessBoard.get(i - 1, j + 1) == Man.NONE)
+                    if (i >= 1 && j < 7)
                         Bthreaten[i-1][j+1]++;
-                    if (i < 7 && j < 7 && chessBoard.get(i - 1, j - 1) == Man.NONE)
+                    if (i < 7 && j < 7)
                         Bthreaten[i+1][j+1]++;
-                    if (i >= 1 && chessBoard.get(i - 1, j) == Man.NONE)
+                    if (i >= 1)
                         Bthreaten[i-1][j]++;
-                    if (i < 7 && chessBoard.get(i + 1, j) == Man.NONE)
+                    if (i < 7)
                         Bthreaten[i+1][j]++;
-                    if (j < 7 && chessBoard.get(i, j + 1) == Man.NONE)
+                    if (j < 7)
                         Bthreaten[i][j+1]++;
-                    if (j >= 1 && chessBoard.get(i, j - 1) == Man.NONE)
+                    if (j >= 1)
                         Bthreaten[i][j-1]++;
                     break;
                 case Man.W_QUEEN:
-                    for (int t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Bthreaten[t][j]++;
-                    for (int t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Bthreaten[t][j]++;
-                    for (int t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Bthreaten[i][t]++;
-                    for (int t = j - 1; t > 0 && chessBoard.get(i, t) == Man.NONE; t--) Bthreaten[i][t]--;
+                    for (t = i + 1; t < 8 && chessBoard.get(t, j) == Man.NONE; t++) Bthreaten[t][j]++;
+                    if (t < 8) Bthreaten[t][j]++;
+                    for (t = i - 1; t >= 0 && chessBoard.get(t, j) == Man.NONE; t--) Bthreaten[t][j]++;
+                    if (t >= 0) Bthreaten[t][j]++;
+                    for (t = j + 1; t < 8 && chessBoard.get(i, t) == Man.NONE; t++) Bthreaten[i][t]++;
+                    if (t < 8) Bthreaten[i][t]++;
+                    for (t = j - 1; t >= 0 && chessBoard.get(i, t) == Man.NONE; t--) Bthreaten[i][t]++;
+                    if (t >= 0) Bthreaten[i][t]++;
+
                     x=i+1;
                     y=j+1;
                     while (x < 8 && y < 8 && chessBoard.get(x, y) == Man.NONE) {
@@ -244,24 +282,31 @@ public class MoveGenerator {
                         x++;
                         y++;
                     }
+                    if (x < 8 && y < 8) Bthreaten[x][y]++;
+
                     x=i-1;y=j-1;
                     while (x >= 0 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Bthreaten[x][y]++;
                         x--;
                         y--;
                     }
+                    if (x >= 0 && y >= 0) Bthreaten[x][y]++;
+
                     x=i-1;y=j+1;
                     while (x >= 0 && y < 8 && chessBoard.get(x, y) == Man.NONE) {
                         Bthreaten[x][y]++;
                         x--;
                         y++;
                     }
+                    if (x >= 0 && y < 8) Bthreaten[x][y]++;
+
                     x=i+1;y=j-1;
                     while (x < 8 && y >= 0 && chessBoard.get(x, y) == Man.NONE) {
                         Bthreaten[x][y]++;
                         x++;
                         y--;
                     }
+                    if (x < 8 && y >= 0) Bthreaten[x][y]++;
                     break;
                 default:break;
             }
@@ -358,6 +403,7 @@ public class MoveGenerator {
                 break;
             case Man.B_QUEEN:
             case Man.W_QUEEN:
+
                 if (move.fromX == move.toX) {
                     int up = Math.min(move.fromY, move.toY);
                     int down = Math.max(move.fromY, move.toY);
@@ -399,12 +445,48 @@ public class MoveGenerator {
                 ;
                 break;
             case Man.B_KING:
-                if (Math.abs(move.toX - move.fromX) <= 1 && Math.abs(move.toY - move.fromY) <= 1 && Bthreaten[move.toY][move.toX] == 0)
-                    return true;
+                if (!move.isShortCastling && !move.isLongCastling) {
+                    if (Math.abs(move.toX - move.fromX) <= 1 && Math.abs(move.toY - move.fromY) <= 1 && Bthreaten[move.toY][move.toX] == 0)
+                        return true;
+                } else if (move.isShortCastling) {
+
+                    if (move.fromY == 0 && move.fromX == 4 && canBlackShortCastling) {
+                        if (Bthreaten[0][4] == 0 && Bthreaten[0][5] == 0 && Bthreaten[0][6] == 0) {
+                            if (chessBoard.get(0, 5) == Man.NONE && chessBoard.get(0, 6) == Man.NONE)
+                                return true;
+                        }
+                    }
+                } else if (move.isLongCastling) {
+                    if (move.fromY == 0 && move.fromX == 4 && canBlackLongCastling) {
+                        if (Bthreaten[0][2] == 0 && Bthreaten[0][3] == 0 && Bthreaten[0][4] == 0) {
+                            if (chessBoard.get(0, 2) == Man.NONE && chessBoard.get(0, 3) == Man.NONE && chessBoard.get(0, 4) == Man.NONE)
+                                return true;
+                        }
+                    }
+                }
+
                 break;
             case Man.W_KING:
-                if (Math.abs(move.toX - move.fromX) <= 1 && Math.abs(move.toY - move.fromY) <= 1 && Wthreaten[move.toY][move.toX] == 0)
-                    return true;
+                if (!move.isShortCastling && !move.isLongCastling) {
+                    System.out.println(Wthreaten[move.toY][move.toX]);
+                    if (Math.abs(move.toX - move.fromX) <= 1 && Math.abs(move.toY - move.fromY) <= 1 && Wthreaten[move.toY][move.toX] == 0)
+
+                        return true;
+                } else if (move.isShortCastling) {
+
+                    if (move.fromY == 7 && move.fromX == 4 && canWhiteShortCastling) {
+                        if (Wthreaten[7][4] == 0 && Wthreaten[7][5] == 0 && Wthreaten[7][6] == 0) {
+                            return true;
+                        }
+                    }
+                } else if (move.isLongCastling) {
+                    if (move.fromY == 7 && move.fromX == 4 && canWhiteLongCastling) {
+                        if (Wthreaten[7][2] == 0 && Wthreaten[7][3] == 0 && Wthreaten[7][4] == 0) {
+                            if (chessBoard.get(7, 2) == Man.NONE && chessBoard.get(7, 3) == Man.NONE && chessBoard.get(7, 4) == Man.NONE)
+                                return true;
+                        }
+                    }
+                }
                 break;
             default:
                 break;
@@ -434,9 +516,25 @@ public class MoveGenerator {
                                     continue;
                                 } else move.isPromotion = false;
                             }
+                            if (fromY == 7 && fromX == 4 && chessBoard.get(fromY, fromX) == Man.W_KING && toY == 7 && toX == 6) {
+                                move.isShortCastling = true;
+                                if (isValidMove(chessBoard, move)) {
+                                    moves.add(move);
+                                    continue;
+                                } else move.isShortCastling = false;
+                            }
+                            if (fromY == 7 && fromX == 4 && chessBoard.get(fromY, fromX) == Man.W_KING && toY == 7 && toX == 2) {
+                                move.isLongCastling = true;
+                                if (isValidMove(chessBoard, move)) {
+                                    moves.add(move);
+                                    continue;
+                                } else move.isLongCastling = false;
+                            }
+
                             if (isValidMove(chessBoard, move)) {
                                 moves.add(move);
                             }
+
                         }
                         if (Man.isBlack(chessBoard.get(fromY, fromX)) && side == 1) {
                             Move move = new Move(fromX, fromY, toX, toY);
@@ -449,6 +547,20 @@ public class MoveGenerator {
                                     }
                                     continue;
                                 } else move.isPromotion = false;
+                            }
+                            if (fromY == 0 && fromX == 4 && chessBoard.get(fromY, fromX) == Man.B_KING && toY == 0 && toX == 6) {
+                                move.isShortCastling = true;
+                                if (isValidMove(chessBoard, move)) {
+                                    moves.add(move);
+                                    continue;
+                                } else move.isShortCastling = false;
+                            }
+                            if (fromY == 0 && fromX == 4 && chessBoard.get(fromY, fromX) == Man.B_KING && toY == 0 && toX == 2) {
+                                move.isLongCastling = true;
+                                if (isValidMove(chessBoard, move)) {
+                                    moves.add(move);
+                                    continue;
+                                } else move.isLongCastling = false;
                             }
                             if (isValidMove(chessBoard, move)) {
                                 moves.add(move);

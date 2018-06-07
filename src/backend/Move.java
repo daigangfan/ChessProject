@@ -6,6 +6,8 @@ public class Move {
     int toX;
     int toY;
     boolean isPromotion=false;
+    boolean isShortCastling = false;
+    boolean isLongCastling = false;
     int promotionType=-1;
 
     public Move(int fromX, int fromY, int toX, int toY) {
@@ -21,5 +23,13 @@ public class Move {
 
     public void setPromotionType(int promotionType) {
         this.promotionType = promotionType;
+    }
+
+    public void setLongCastling(boolean longCastling) {
+        isLongCastling = longCastling;
+    }
+
+    public void setShortCastling(boolean shortCastling) {
+        isShortCastling = shortCastling;
     }
 }
