@@ -10,7 +10,8 @@ public class MoveGenerator {
     boolean canBlackShortCastling = true;
     boolean canWhiteLongCastling = true;
     boolean canBlackLongCastling = true;
-
+    boolean[] isFirstMoveForWhitePawn = {false, false, false, false, false, false, false, false};
+    boolean[] isFirstMoveForBlackPawn = {false, false, false, false, false, false, false, false};
     private void updateThreatenMatrix(ChessBoard chessBoard){
         //TODO: check the subscription.
         int x, y, t;
@@ -285,6 +286,7 @@ public class MoveGenerator {
             }
     }
 
+
     boolean isValidMove(ChessBoard chessBoard, Move move) {
         int i, j;
         updateThreatenMatrix(chessBoard);
@@ -293,6 +295,12 @@ public class MoveGenerator {
         if (Man.isSameSide(nMoveID, nTargetID)) return false;
         switch (nMoveID) {
             case Man.B_PAWN:
+                if (move.isEP) {
+                    if (move.fromY == 4) {
+                        if (move.toY - move.fromY == 1 && Math.abs(move.toX - move.fromX) == 1 && chessBoard.get(move.toY - 1, move.toX) == Man.W_PAWN && isFirstMoveForWhitePawn[move.toX] && chessBoard.get(move.toY, move.toX) == Man.NONE)
+                            return true;
+                    }
+                }
                 if (move.fromY != 6) {
                     if (move.fromY == 1 && move.toY - move.fromY == 2 && nTargetID == Man.NONE && move.toX == move.fromX)
                         return true;
@@ -308,6 +316,12 @@ public class MoveGenerator {
                 }
                 break;
             case Man.W_PAWN:
+                if (move.isEP) {
+                    if (move.fromY == 3) {
+                        if (move.toY - move.fromY == -1 && Math.abs(move.toX - move.fromX) == 1 && chessBoard.get(move.toY + 1, move.toX) == Man.B_PAWN && isFirstMoveForBlackPawn[move.toX] && chessBoard.get(move.toY, move.toX) == Man.NONE)
+                            return true;
+                    }
+                }
                 if (move.fromY != 1) {
                     if (move.fromY == 6 && move.toY - move.fromY == -2 && nTargetID == Man.NONE && move.toX == move.fromX)
                     return true;
@@ -487,6 +501,12 @@ public class MoveGenerator {
                                     continue;
                                 } else move.isPromotion = false;
                             }
+                            if (fromY == 3 && chessBoard.get(fromY, fromX) == Man.W_PAWN && toY == 2 && Math.abs(fromX - toX) == 1 && chessBoard.get(toY + 1, toX) == Man.B_PAWN) {
+                                move.isEP = true;
+                                if (isValidMove(chessBoard, move)) {
+                                    moves.add(move);
+                                } else move.isEP = false;
+                            }
                             if (fromY == 7 && fromX == 4 && chessBoard.get(fromY, fromX) == Man.W_KING && toY == 7 && toX == 6) {
                                 move.isShortCastling = true;
                                 if (isValidMove(chessBoard, move)) {
@@ -518,6 +538,12 @@ public class MoveGenerator {
                                     }
                                     continue;
                                 } else move.isPromotion = false;
+                            }
+                            if (fromY == 4 && chessBoard.get(fromY, fromX) == Man.B_PAWN && toY == 5 && Math.abs(fromX - toX) == 1 && chessBoard.get(toY - 1, toX) == Man.W_PAWN) {
+                                move.isEP = true;
+                                if (isValidMove(chessBoard, move)) {
+                                    moves.add(move);
+                                } else move.isEP = false;
                             }
                             if (fromY == 0 && fromX == 4 && chessBoard.get(fromY, fromX) == Man.B_KING && toY == 0 && toX == 6) {
                                 move.isShortCastling = true;

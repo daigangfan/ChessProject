@@ -68,12 +68,15 @@ public class ChessBoard {
 
 
     public void execute(Move move){
-        if (!move.isPromotion && !move.isLongCastling && !move.isShortCastling) {
+        if (!move.isPromotion && !move.isLongCastling && !move.isShortCastling && !move.isEP) {
             chessboard[move.toY][move.toX]=chessboard[move.fromY][move.fromX];
             chessboard[move.fromY][move.fromX]=0;
-
-        }
-        else if(move.isPromotion){
+        } else if (move.isEP) {
+            chessboard[move.toY][move.toX] = chessboard[move.fromY][move.fromX];
+            chessboard[move.fromY][move.fromX] = 0;
+            if (Man.isWhite(get(move.fromY, move.fromX))) chessboard[move.toY + 1][move.toX] = 0;
+            if (Man.isBlack(get(move.fromY, move.fromX))) chessboard[move.toY - 1][move.toX] = 0;
+        } else if(move.isPromotion){
             chessboard[move.toY][move.toX] = move.promotionType;
             chessboard[move.fromY][move.fromX] = 0;
         } else if (move.isLongCastling) {

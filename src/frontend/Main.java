@@ -7,7 +7,6 @@ import backend.Move;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.scene.Group;
@@ -74,14 +73,7 @@ class ChessBoardPane extends GridPane {
     int selectedID = -1;
     int targetID = -1;
     int side;
-    Task<Void> computerMove = new Task<Void>() {
-        @Override
-        protected Void call() throws Exception {
-            executor.makeMove();
-            renderPane(false);
-            return null;
-        }
-    };
+
     public ChessBoardPane(int side) {
         super();
         this.side = side;
@@ -208,6 +200,12 @@ class ChessBoardPane extends GridPane {
                             break;
                     }
                 }
+                if (executor.getChessBoard().get(fromY, fromX) == Man.B_PAWN && side == 0 && fromY == 4 && Math.abs(fromX - toX) == 1 && executor.getChessBoard().get(toY, toX) == Man.NONE) {
+                    move.setEP(true);
+                }
+                if (executor.getChessBoard().get(fromY, fromX) == Man.W_PAWN && side == 1 && fromY == 3 && Math.abs(fromX - toX) == 1 && executor.getChessBoard().get(toY, toX) == Man.NONE) {
+                    move.setEP(true);
+                }
                 if (executor.getChessBoard().get(fromY, fromX) == Man.W_PAWN && side == 1 && fromY == 1 && toY == 0) {
                     move.setPromotion(true);
                     Optional<String> result = new PromotionSelectWindow().showAndWait();
@@ -231,6 +229,7 @@ class ChessBoardPane extends GridPane {
                             break;
                     }
                 }
+
                 if (!executor.isValidMove(move)) {
                     if (executor.isWhite(executor.getChessBoard().get(toY, toX)) && side == 1) renderPane(false);
                     else if (executor.isBlack(executor.getChessBoard().get(toY, toX)) && side == 0) renderPane(false);
@@ -245,6 +244,7 @@ class ChessBoardPane extends GridPane {
                 }
                 if (executor.isValidMove(move)) {
                     executor.execute(move);
+
                     renderPane(true);
                     selecting = false;
                 }
@@ -353,7 +353,8 @@ class ChessBoardPane extends GridPane {
             }
         }
     }
-    }
+
+}
 
 
 class ImageViewWithSide extends ImageView {
@@ -375,6 +376,7 @@ class ImageViewWithSide extends ImageView {
         this.side = side;
     }
 }
+
 
 class PromotionSelectWindow extends ChoiceDialog {
 
@@ -442,4 +444,5 @@ class StartBox extends VBox {
             primaryStage.setScene(playScene);
         });
     }
+
 }

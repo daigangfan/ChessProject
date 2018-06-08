@@ -1,7 +1,14 @@
 package backend;
 
+import javafx.scene.control.Alert;
+
+import java.io.File;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Executor {
     int times = 0;
@@ -10,11 +17,45 @@ public class Executor {
     ChessBoard chessBoard;
     MoveGenerator generator;
     Move temp;
-
+    Logger logger;
+    HashMap<Integer, String> s = new HashMap<>();
     EvaluateEngine eva = new EvaluateEngine();
     public Executor() {
         chessBoard = new ChessBoard();
         generator = new MoveGenerator();
+        logger = Logger.getLogger("chessMove");
+        System.out.println(java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")));
+        String path = "棋谱" + java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")) + ".txt";
+        File file = new File(path);
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+
+            } catch (java.io.IOException e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "不能创建棋谱！").show();
+            }
+        }
+        try {
+            FileHandler fileHandler = new FileHandler("棋谱" + java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")) + ".txt");
+            fileHandler.setLevel(Level.INFO);
+            logger.addHandler(fileHandler);
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "不能创建棋谱,将在控制台显示！").show();
+        }
+        s.put(Man.B_PAWN, "黑兵");
+        s.put(Man.W_PAWN, "白兵");
+        s.put(Man.W_ROOK, "白车");
+        s.put(Man.B_ROOK, "黑车");
+        s.put(Man.W_KNIGHT, "白马");
+        s.put(Man.B_KNIGHT, "黑马");
+        s.put(Man.W_QUEEN, "白后");
+        s.put(Man.B_QUEEN, "黑后");
+        s.put(Man.B_BISHOP, "黑象");
+        s.put(Man.W_BISHOP, "白象");
+        s.put(Man.B_KING, "黑王");
+        s.put(Man.W_KING, "白王");
     }
 
     public int getSide() {
@@ -128,53 +169,60 @@ public class Executor {
             switch (times) {
                 case 0:
                     move = new Move(4, 6, 4, 4);
-                    chessBoard.execute(move);
-                    times++;
+                    execute(move);
+
+
                     break;
                 case 2:
                     move = new Move(6, 7, 5, 5);
-                    chessBoard.execute(move);
-                    times++;
+                    execute(move);
+
+
                     break;
                 case 4:
                     move = new Move(5, 7, 2, 4);
-                    chessBoard.execute(move);
-                    times++;
+                    execute(move);
+
+
                     break;
                 default:
                     break;
             }
+
             if (times > 5) {
                 searchMove();
-                chessBoard.execute(temp);
-                times++;
+                execute(temp);
+
+
             }
         }
         if (side == 1) {
             switch (times) {
                 case 1:
                     move = new Move(4, 1, 4, 3);
-                    chessBoard.execute(move);
-                    times++;
+                    execute(move);
+
+
                     break;
                 case 3:
                     move = new Move(1, 0, 2, 2);
-                    chessBoard.execute(move);
-                    times++;
+                    execute(move);
+
+
                     break;
                 case 5:
 
                     move = new Move(5, 0, 2, 3);
-                    chessBoard.execute(move);
-                    times++;
+                    execute(move);
+
                     break;
                 default:
                     break;
             }
             if (times > 6) {
                 searchMove();
-                chessBoard.execute(temp);
-                times++;
+                execute(temp);
+
             }
         }
 
@@ -185,6 +233,18 @@ public class Executor {
 
     }
 
+    private void setEP(Move move) {
+        if (chessBoard.get(move.fromY, move.fromX) == Man.B_PAWN && move.toY - move.fromY == 2) {
+            generator.isFirstMoveForBlackPawn[move.fromX] = true;
+        } else if (chessBoard.get(move.fromY, move.fromX) == Man.W_PAWN && move.toY - move.fromY == -2) {
+            generator.isFirstMoveForWhitePawn[move.fromX] = true;
+        } else {
+            for (int i = 0; i < 8; i++) {
+                generator.isFirstMoveForWhitePawn[i] = false;
+                generator.isFirstMoveForBlackPawn[i] = false;
+            }
+        }
+    }
     private double negaMax(ChessBoard chessBoard1, int depth, double alpha, double beta) {
 
         int currentSide = side == 0 ? (maxDepth - depth) % 2 : (maxDepth - depth + 1) % 2;
@@ -237,7 +297,9 @@ public class Executor {
     }
 
     public void execute(Move move) {
+        logg(move);
         this.chessBoard.execute(move);
+        this.setEP(move);
         int sourceId = chessBoard.get(move.fromY, move.fromX);
         if (sourceId == Man.W_KING) {
             generator.canWhiteShortCastling = false;
@@ -255,6 +317,56 @@ public class Executor {
         times++;
     }
 
+    public void logg(Move move) {
+        StringBuilder builder = new StringBuilder();
+        int from = this.chessBoard.get(move.fromY, move.fromX);
+        int to = this.chessBoard.get(move.toY, move.toX);
+        if (!move.isShortCastling && !move.isLongCastling && !move.isPromotion) {
+            builder = builder.append(times);
+            builder = builder.append(". ");
+            builder = builder.append(s.get(from));
+            builder = builder.append((char) (move.fromX + 65));
+            builder = builder.append(move.fromY + 1);
+            builder = builder.append("-");
+            builder = builder.append((char) (move.toX + 65));
+            builder = builder.append(move.toY + 1);
+            builder = builder.append("\n");
+        }
+        if (move.isPromotion) {
+            builder = builder.append(times);
+            builder = builder.append(". ");
+            builder.append((char) (move.fromX + 65));
+            builder.append("升为：");
+            builder.append(s.get(move.promotionType));
+            builder = builder.append("\n");
+        }
+        if (move.isLongCastling) {
+            builder = builder.append(times);
+            builder = builder.append(". ");
+            builder = builder.append(s.get(from));
+            builder.append("0-0-0");
+            builder.append("\n");
+        }
+        if (move.isShortCastling) {
+            builder = builder.append(times);
+            builder = builder.append(". ");
+            builder.append(s.get(from));
+            builder.append("0-0");
+            builder.append("\n");
+        }
+        if (move.isEP) {
+            builder = builder.append(times);
+            builder = builder.append(". ");
+            builder.append("EP:");
+            builder = builder.append((char) (move.fromX + 65));
+            builder = builder.append(move.fromY + 1);
+            builder = builder.append("-");
+            builder = builder.append((char) (move.toX + 65));
+            builder = builder.append(move.toY + 1);
+            builder = builder.append("\n");
+        }
+        logger.info(builder.toString());
+    }
 }
 
 class EvaluateEngine {

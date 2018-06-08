@@ -9,6 +9,7 @@ public class Move {
     boolean isShortCastling = false;
     boolean isLongCastling = false;
     int promotionType=-1;
+    boolean isEP = false;
 
     public Move(int fromX, int fromY, int toX, int toY) {
         this.fromX = fromX;
@@ -31,5 +32,9 @@ public class Move {
 
     public void setShortCastling(boolean shortCastling) {
         isShortCastling = shortCastling;
+    }
+
+    public void setEP(boolean EP) {
+        isEP = EP;
     }
 }
