@@ -5,7 +5,9 @@ import backend.Executor;
 import backend.Man;
 import backend.Move;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.event.Event;
 import javafx.event.EventType;
 import javafx.scene.Group;
@@ -27,37 +29,39 @@ import java.util.Optional;
 public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
-        VBox box = new VBox();
-        Label message = new Label("chess v0.0, please select your side.");
-        ChoiceBox cb = new ChoiceBox(FXCollections.observableArrayList("white", "black"));
-        cb.setValue("white");
-        Button button = new Button("ok,lets' start");
-        box.getChildren().addAll(message, cb, button);
-        box.setSpacing(30);
-        Scene startScene = new Scene(box);
-        button.setOnMouseClicked(event -> {
-            int side;
-            if (cb.getValue() == "white") side = 1;
-            else side = 0;
-            ChessBoardPane chessBoardPane = new ChessBoardPane(side);
-            HBox newHBox = new HBox();
-            Button longCastling = new Button("长易位");
-            longCastling.setOnMouseClicked(event1 -> {
-                longCastling.fireEvent(new CastlingEvent(CastlingEvent.longCastlingEvent));
-            });
-
-            Button shortCastling = new Button("短易位");
-            shortCastling.setOnMouseClicked(event1 -> {
-                shortCastling.fireEvent(new CastlingEvent(CastlingEvent.shortCastlingEvent));
-            });
-            VBox vBox = new VBox(longCastling, shortCastling);
-            newHBox.getChildren().addAll(chessBoardPane, vBox);
-            newHBox.addEventHandler(CastlingEvent.CastlingEventType, event1 -> {
-                chessBoardPane.HandlingCastleEvent(event1);
-            });
-            Scene playScene = new Scene(newHBox);
-            primaryStage.setScene(playScene);
-        });
+//        VBox box = new VBox();
+//        Label message = new Label("chess v0.0, please select your side.");
+//        ChoiceBox cb = new ChoiceBox(FXCollections.observableArrayList("white", "black"));
+//        cb.setValue("white");
+//        Button button = new Button("ok,lets' start");
+//        box.getChildren().addAll(message, cb, button);
+//        box.setSpacing(30);
+//        Scene startScene = new Scene(box);
+//        button.setOnMouseClicked(event -> {
+//            int side;
+//            if (cb.getValue() == "white") side = 1;
+//            else side = 0;
+//            ChessBoardPane chessBoardPane = new ChessBoardPane(side);
+//            HBox newHBox = new HBox();
+//            Button longCastling = new Button("长易位");
+//            longCastling.setOnMouseClicked(event1 -> {
+//                longCastling.fireEvent(new CastlingEvent(CastlingEvent.longCastlingEvent));
+//            });
+//
+//            Button shortCastling = new Button("短易位");
+//            shortCastling.setOnMouseClicked(event1 -> {
+//                shortCastling.fireEvent(new CastlingEvent(CastlingEvent.shortCastlingEvent));
+//            });
+//            VBox vBox = new VBox(longCastling, shortCastling);
+//            newHBox.getChildren().addAll(chessBoardPane, vBox);
+//            newHBox.addEventHandler(CastlingEvent.CastlingEventType, event1 -> {
+//                chessBoardPane.HandlingCastleEvent(event1);
+//            });
+//            Scene playScene = new Scene(newHBox);
+//            primaryStage.setScene(playScene);
+//        });
+        StartBox startBox = new StartBox(primaryStage);
+        Scene startScene = new Scene(startBox);
         primaryStage.setScene(startScene);
         primaryStage.show();
 
@@ -70,6 +74,14 @@ class ChessBoardPane extends GridPane {
     int selectedID = -1;
     int targetID = -1;
     int side;
+    Task<Void> computerMove = new Task<Void>() {
+        @Override
+        protected Void call() throws Exception {
+            executor.makeMove();
+            renderPane(false);
+            return null;
+        }
+    };
     public ChessBoardPane(int side) {
         super();
         this.side = side;
@@ -90,13 +102,9 @@ class ChessBoardPane extends GridPane {
 
                 g.setOnMouseClicked(
                         event -> {
-                            System.out.println("clicked!");
-                            System.out.println(((ImageViewWithSide) g.getChildren().get(1)).getSide());
-                            System.out.println(side);
-                            System.out.println(selecting);
+
                             if (!selecting) {
-                                System.out.println(((ImageViewWithSide) g.getChildren().get(1)).getSide());
-                                System.out.println(side);
+
                                 if (((ImageViewWithSide) g.getChildren().get(1)).getSide() != this.side && ((ImageViewWithSide) g.getChildren().get(1)).getSide() >= 0) {
                                     selectedID = Integer.valueOf(((Rectangle) g.getChildren().get(0)).getId());
                                     ((Rectangle) g.getChildren().get(0)).setFill(Color.RED);
@@ -114,9 +122,20 @@ class ChessBoardPane extends GridPane {
         if (side == 0) executor.makeMove();
         renderPane(false);
         this.addEventHandler(StepFinishedEvent.STEP_FINISHED_EVENT_EVENT_TYPE, event -> {
-            this.executor.makeMove();
-            renderPane(false);
+            Platform.runLater(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            checkStatus(false);
+                            executor.makeMove();
+                            renderPane(false);
+                            checkStatus(true);
+                        }
+                    }
+            );
+
         });
+
 
     }
 
@@ -138,6 +157,7 @@ class ChessBoardPane extends GridPane {
                     ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.WHITE);
                 }
         super.updateBounds();
+
         if (isAfterStep) this.fireEvent(new StepFinishedEvent());
 
     }
@@ -281,6 +301,53 @@ class ChessBoardPane extends GridPane {
             }
         }
     }
+
+    private void checkStatus(boolean isAfterComputer) {
+        if (side == 0 && isAfterComputer) {
+            String info = this.executor.isBlackLose();
+            if (info == "Black Lost!") {
+                Alert x = new Alert(Alert.AlertType.INFORMATION, "You lose!");
+                x.show();
+                x.setOnCloseRequest(event -> {
+                    Stage a = (Stage) (this.getScene().getWindow());
+                    a.setScene(new Scene(new StartBox(a)));
+                });
+            }
+        }
+        if (side == 1 && isAfterComputer) {
+            String info = this.executor.isWhiteLose();
+            if (info == "White Lost!") {
+                Alert x = new Alert(Alert.AlertType.INFORMATION, "You lose!");
+                x.show();
+                x.setOnCloseRequest(event -> {
+                    Stage a = (Stage) (this.getScene().getWindow());
+                    a.setScene(new Scene(new StartBox(a)));
+                });
+            }
+        }
+        if (side == 0 && !isAfterComputer) {
+            String info = this.executor.isWhiteLose();
+            if (info == "White Lost!") {
+                Alert x = new Alert(Alert.AlertType.INFORMATION, "You win!");
+                x.show();
+                x.setOnCloseRequest(event -> {
+                    Stage a = (Stage) (this.getScene().getWindow());
+                    a.setScene(new Scene(new StartBox(a)));
+                });
+            }
+        }
+        if (side == 1 && !isAfterComputer) {
+            String info = this.executor.isBlackLose();
+            if (info == "Black Lost!") {
+                Alert x = new Alert(Alert.AlertType.INFORMATION, "You win!");
+                x.show();
+                x.setOnCloseRequest(event -> {
+                    Stage a = (Stage) (this.getScene().getWindow());
+                    a.setScene(new Scene(new StartBox(a)));
+                });
+            }
+        }
+    }
     }
 
 
@@ -335,5 +402,39 @@ class StepFinishedEvent extends Event {
 
     public StepFinishedEvent() {
         super(STEP_FINISHED_EVENT_EVENT_TYPE);
+    }
+}
+
+class StartBox extends VBox {
+    public StartBox(Stage primaryStage) {
+        Label message = new Label("chess v0.0, please select your side.");
+        ChoiceBox cb = new ChoiceBox(FXCollections.observableArrayList("white", "black"));
+        cb.setValue("white");
+        Button button = new Button("ok,lets' start");
+        this.getChildren().addAll(message, cb, button);
+        this.setSpacing(30);
+        button.setOnMouseClicked(event -> {
+            int side;
+            if (cb.getValue() == "white") side = 1;
+            else side = 0;
+            ChessBoardPane chessBoardPane = new ChessBoardPane(side);
+            HBox newHBox = new HBox();
+            Button longCastling = new Button("长易位");
+            longCastling.setOnMouseClicked(event1 -> {
+                longCastling.fireEvent(new CastlingEvent(CastlingEvent.longCastlingEvent));
+            });
+
+            Button shortCastling = new Button("短易位");
+            shortCastling.setOnMouseClicked(event1 -> {
+                shortCastling.fireEvent(new CastlingEvent(CastlingEvent.shortCastlingEvent));
+            });
+            VBox vBox = new VBox(longCastling, shortCastling);
+            newHBox.getChildren().addAll(chessBoardPane, vBox);
+            newHBox.addEventHandler(CastlingEvent.CastlingEventType, event1 -> {
+                chessBoardPane.HandlingCastleEvent(event1);
+            });
+            Scene playScene = new Scene(newHBox);
+            primaryStage.setScene(playScene);
+        });
     }
 }

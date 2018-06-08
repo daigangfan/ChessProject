@@ -1,11 +1,12 @@
 package backend;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Executor {
     int times = 0;
     int side = 0;//电脑方向0白1黑
-    int maxDepth = 6;
+    int maxDepth = 3;
     ChessBoard chessBoard;
     MoveGenerator generator;
     Move temp;
@@ -23,38 +24,100 @@ public class Executor {
         this.side = side;
     }
 
-    private Double isGameOver(int currentSide) {
-        Boolean whiteAlive = false;
-        Boolean blackAlive = false;
+    public String isWhiteLose() {
+        ArrayList<Move> blackMoves = generator.generateAllMoves(chessBoard, 1);
+        ArrayList<Move> whiteMoves = generator.generateAllMoves(chessBoard, 0);
+        ArrayList<Move> blackThreatenMoves = new ArrayList<>();
+        Move move;
+        boolean isWhiteSafe = false;
+        boolean isWhiteKingAlive = false;
+
         for (int i = 0; i < 8; i++)
             for (int j = 0; j < 8; j++) {
                 if (chessBoard.get(i, j) == Man.W_KING) {
-                    whiteAlive = true;
-
+                    isWhiteKingAlive = true;
+                    break;
                 }
+            }
+        if (!isWhiteKingAlive) return "White Lost!";
+        else {
+            for (Move e : blackMoves) {
+                if (chessBoard.get(e.toY, e.toX) == Man.W_KING) {
+                    blackThreatenMoves.add(e);
+                }
+
+            }
+            if (blackThreatenMoves.size() == 0) return "";
+            else if (blackThreatenMoves.size() == 1) {
+                if (generator.Bthreaten[blackThreatenMoves.get(0).fromY][blackThreatenMoves.get(0).fromX] > 0)
+                    return "";
+                else {
+                    for (Move t : whiteMoves) {
+                        if (chessBoard.get(t.fromY, t.fromX) == Man.W_KING) {
+                            isWhiteSafe = true;
+                        }
+                    }
+                    if (!isWhiteSafe) return "White Lost!";
+                }
+            } else {
+                for (Move t : whiteMoves) {
+                    if (chessBoard.get(t.fromY, t.fromX) == Man.W_KING) {
+                        isWhiteSafe = true;
+                    }
+                }
+                if (!isWhiteSafe) return "White Lost!";
+            }
+        }
+
+        return "";
+    }
+
+    public String isBlackLose() {
+        ArrayList<Move> blackMoves = generator.generateAllMoves(chessBoard, 1);
+        ArrayList<Move> whiteMoves = generator.generateAllMoves(chessBoard, 0);
+        ArrayList<Move> whiteThreatenMoves = new ArrayList<>();
+        Move move;
+        boolean isBlackSafe = false;
+        boolean isBlackKingAlive = false;
+
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++) {
                 if (chessBoard.get(i, j) == Man.B_KING) {
-                    blackAlive = true;
-
+                    isBlackKingAlive = true;
+                    break;
                 }
             }
-        if (!whiteAlive) {
-            if (currentSide == 0) {
-                return -19900.0;
-            }
-            if (currentSide == 1) {
-                return 19900.0;
-            }
+        if (!isBlackKingAlive) return "Black Lost!";
+        else {
+            for (Move e : whiteMoves) {
+                if (chessBoard.get(e.toY, e.toX) == Man.B_KING) {
+                    whiteThreatenMoves.add(e);
+                }
 
-        }
-        if (!blackAlive) {
-            if (currentSide == 0) {
-                return 19900.0;
             }
-            if (currentSide == 1) {
-                return -19900.0;
+            if (whiteThreatenMoves.size() == 0) return "";
+            else if (whiteThreatenMoves.size() == 1) {
+                if (generator.Bthreaten[whiteThreatenMoves.get(0).fromY][whiteThreatenMoves.get(0).fromX] > 0)
+                    return "";
+                else {
+                    for (Move t : blackMoves) {
+                        if (chessBoard.get(t.fromY, t.fromX) == Man.W_KING) {
+                            isBlackSafe = true;
+                        }
+                    }
+                    if (!isBlackSafe) return "Black Lost!";
+                }
+            } else {
+                for (Move t : blackMoves) {
+                    if (chessBoard.get(t.fromY, t.fromX) == Man.B_KING) {
+                        isBlackSafe = true;
+                    }
+                }
+                if (!isBlackSafe) return "Black Lost!";
             }
         }
-        return 0.0;
+
+        return "";
     }
 
     public void makeMove() {
@@ -117,11 +180,12 @@ public class Executor {
     }
 
     private void searchMove() {
-        double score = AlphaBeta(chessBoard, maxDepth, -2000000.0, 2000000.0);
+        double score = negaMax(chessBoard, maxDepth);
 
     }
 
-    private double AlphaBeta(ChessBoard chessBoard1, int depth, double alpha, double beta) {
+    private double negaMax(ChessBoard chessBoard1, int depth) {
+        double current = -20000.0;
         int currentSide = side == 0 ? (maxDepth - depth) % 2 : (maxDepth - depth + 1) % 2;
 
         if (depth <= 0) {
@@ -133,19 +197,16 @@ public class Executor {
             for (int row = 0; row < 8; row++)
                 newChessBoard.chessboard[row] = chessBoard1.chessboard[row].clone();
             newChessBoard.execute(x);
-            score = -AlphaBeta(newChessBoard, depth - 1, -beta, -alpha);
-
-            if (score > alpha) {
-                alpha = score;
+            score = -negaMax(newChessBoard, depth - 1);
+            if (score > current) {
+                current = score;
                 if (depth == maxDepth) {
                     temp = x;
                 }
             }
-            if (alpha >= beta)
-                break;
 
         }
-        return alpha;
+        return current;
     }
     public boolean isValidMove(Move move) {
         return generator.isValidMove(chessBoard, move);
