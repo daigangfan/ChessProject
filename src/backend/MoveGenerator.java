@@ -9,35 +9,6 @@ public class MoveGenerator {
     boolean canBlackShortCastling = true;
     boolean canWhiteLongCastling = true;
     boolean canBlackLongCastling = true;
-    public static void main(String[] args) {
-        // unit test
-        ChessBoard chessBoard = new ChessBoard();
-        MoveGenerator g = new MoveGenerator();
-        g.updateThreatenMatrix(chessBoard);
-
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                System.out.print(Integer.toString(chessBoard.get(i, j)) + " ");
-            }
-            System.out.println("");
-        }
-        System.out.println("");
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                System.out.print(Integer.toString(g.Wthreaten[i][j]) + " ");
-
-            }
-            System.out.println("");
-        }
-        System.out.println("");
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                System.out.print(Integer.toString(g.Bthreaten[i][j]) + " ");
-
-            }
-            System.out.println("");
-        }
-    }
 
     private void updateThreatenMatrix(ChessBoard chessBoard){
         //TODO: check the subscription.
@@ -468,7 +439,7 @@ public class MoveGenerator {
                 break;
             case Man.W_KING:
                 if (!move.isShortCastling && !move.isLongCastling) {
-                    System.out.println(Wthreaten[move.toY][move.toX]);
+
                     if (Math.abs(move.toX - move.fromX) <= 1 && Math.abs(move.toY - move.fromY) <= 1 && Wthreaten[move.toY][move.toX] == 0)
 
                         return true;
