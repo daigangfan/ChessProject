@@ -64,7 +64,7 @@ public class Main extends Application {
         Scene startScene = new Scene(startBox);
         primaryStage.setScene(startScene);
         primaryStage.show();
-
+        primaryStage.setTitle("chess v1.0.0");
     }
 }
 
@@ -126,9 +126,14 @@ class ChessBoardPane extends GridPane {
                     new Runnable() {
                         @Override
                         public void run() {
+
                             checkStatus(false);
+                            Stage current = (Stage) getScene().getWindow();
+                            current.setTitle("thinking...");
                             executor.makeMove();
+
                             renderPane(false);
+                            current.setTitle("chess v1.0.0");
                             checkStatus(true);
                         }
                     }

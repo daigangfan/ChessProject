@@ -100,6 +100,7 @@ public class ChessBoard {
             }
             if (move.isLongCastling) {
                 chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
+                chessboard[move.toY][move.toX] = Man.NONE;
                 if (move.toY == 0) {
                     this.deExecute(new Move(0, 0, 3, 0), Man.NONE);
                 }
@@ -109,6 +110,7 @@ public class ChessBoard {
             }
             if (move.isShortCastling) {
                 chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
+                chessboard[move.toY][move.toX] = Man.NONE;
                 if (move.toY == 0) {
                     this.deExecute(new Move(7, 0, 5, 0), Man.NONE);
                 }

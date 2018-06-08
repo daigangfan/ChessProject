@@ -1,6 +1,7 @@
 package backend;
 
 import java.util.ArrayList;
+
 public class MoveGenerator {
     int[][]Bthreaten=new int[8][8];
     int[][]Wthreaten=new int[8][8];

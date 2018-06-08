@@ -6,10 +6,11 @@ import java.util.HashMap;
 public class Executor {
     int times = 0;
     int side = 0;//电脑方向0白1黑
-    int maxDepth = 3;
+    int maxDepth = 4;
     ChessBoard chessBoard;
     MoveGenerator generator;
     Move temp;
+
     EvaluateEngine eva = new EvaluateEngine();
     public Executor() {
         chessBoard = new ChessBoard();
@@ -101,7 +102,7 @@ public class Executor {
                     return "";
                 else {
                     for (Move t : blackMoves) {
-                        if (chessBoard.get(t.fromY, t.fromX) == Man.W_KING) {
+                        if (chessBoard.get(t.fromY, t.fromX) == Man.B_KING) {
                             isBlackSafe = true;
                         }
                     }
@@ -180,33 +181,39 @@ public class Executor {
     }
 
     private void searchMove() {
-        double score = negaMax(chessBoard, maxDepth);
+        double score = negaMax(chessBoard, maxDepth, -20000.0, 20000.0);
 
     }
 
-    private double negaMax(ChessBoard chessBoard1, int depth) {
-        double current = -20000.0;
+    private double negaMax(ChessBoard chessBoard1, int depth, double alpha, double beta) {
+
         int currentSide = side == 0 ? (maxDepth - depth) % 2 : (maxDepth - depth + 1) % 2;
 
         if (depth <= 0) {
-            return eva.EvaluateW(currentSide, chessBoard);
+            return eva.EvaluateW(currentSide, chessBoard1);
         }
         double score;
-        for (Move x : generator.generateAllMoves(chessBoard, currentSide)) {
+        ArrayList<Move> moves = generator.generateAllMoves(chessBoard, currentSide);
+//        Collections.shuffle(moves);
+
+        for (Move x : moves) {
             ChessBoard newChessBoard = new ChessBoard();
             for (int row = 0; row < 8; row++)
                 newChessBoard.chessboard[row] = chessBoard1.chessboard[row].clone();
             newChessBoard.execute(x);
-            score = -negaMax(newChessBoard, depth - 1);
-            if (score > current) {
-                current = score;
+            score = -negaMax(newChessBoard, depth - 1, -beta, -alpha);
+            if (score > alpha) {
+                alpha = score;
                 if (depth == maxDepth) {
                     temp = x;
+                }
+                if (alpha >= beta) {
+                    break;
                 }
             }
 
         }
-        return current;
+        return alpha;
     }
     public boolean isValidMove(Move move) {
         return generator.isValidMove(chessBoard, move);
@@ -381,7 +388,7 @@ class EvaluateEngine {
                     WBaseScores.put(Man.W_QUEEN, 90.0);
                     break;
                 case Man.W_KING:
-                    WBaseScores.put(Man.W_KING, 900.0);
+                    WBaseScores.put(Man.W_KING, 9000.0);
                     break;
                 case Man.B_PAWN:
                     WBaseScores.put(Man.B_PAWN, 10.0);
@@ -399,7 +406,7 @@ class EvaluateEngine {
                     WBaseScores.put(Man.B_QUEEN, 90.0);
                     break;
                 case Man.B_KING:
-                    WBaseScores.put(Man.B_KING, 900.0);
+                    WBaseScores.put(Man.B_KING, 9000.0);
                     break;
                 default:
                     break;
@@ -460,7 +467,7 @@ class EvaluateEngine {
                 }
             }
 
-        if (currentSide == 0) return Wscores - Bscores;
-        else return Bscores - Wscores;
+        if (currentSide == 0) return -Bscores + Wscores;
+        else return -Wscores + Bscores;
     }
 }
