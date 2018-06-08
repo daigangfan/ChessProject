@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 public class Executor {
     int times = 0;
@@ -39,6 +40,7 @@ public class Executor {
         try {
             FileHandler fileHandler = new FileHandler("棋谱" + java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")) + ".txt");
             fileHandler.setLevel(Level.INFO);
+            fileHandler.setFormatter(new SimpleFormatter());
             logger.addHandler(fileHandler);
         } catch (Exception e) {
             e.printStackTrace();
