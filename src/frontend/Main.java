@@ -84,7 +84,7 @@ class ChessBoardPane extends GridPane {
                 Group g = new Group();
                 Rectangle rect = new Rectangle(60, 60);
                 rect.setId(Integer.toString(i * 8 + j));
-                rect.setFill(Color.BLUE);
+                rect.setFill(Color.valueOf("#1ABDE6"));
                 if (i % 2 == 0 && j % 2 == 0) rect.setFill(Color.WHITE);
                 if (i % 2 == 1 && j % 2 == 1) rect.setFill(Color.WHITE);
                 ImageViewWithSide iv = new ImageViewWithSide();
@@ -147,7 +147,7 @@ class ChessBoardPane extends GridPane {
                 if (executor.getChessBoard().get(i, j) == 0) {
                     ((ImageViewWithSide) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(1)).setImage(null);
                     }
-                ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.BLUE);
+                ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.valueOf("#1ABDE6"));
                 if (i % 2 == 0 && j % 2 == 0)
                     ((Rectangle) ((Group) this.getChildren().get(i * 8 + j)).getChildren().get(0)).setFill(Color.WHITE);
                 if (i % 2 == 1 && j % 2 == 1)
