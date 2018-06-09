@@ -69,11 +69,11 @@ public class Executor {
     }
 
     public String isWhiteLose() {
-        ArrayList<Move> blackMoves = generator.generateAllMoves(chessBoard, 1);
+
         ArrayList<Move> whiteMoves = generator.generateAllMoves(chessBoard, 0);
-        ArrayList<Move> blackThreatenMoves = new ArrayList<>();
-        Move move;
-        boolean isWhiteSafe = false;
+        ArrayList<Boolean> isMoveSafe = new ArrayList<>();
+
+
         boolean isWhiteKingAlive = false;
 
         for (int i = 0; i < 8; i++)
@@ -85,40 +85,36 @@ public class Executor {
             }
         if (!isWhiteKingAlive) return "White Lost!";
         else {
-            for (Move e : blackMoves) {
-                if (chessBoard.get(e.toY, e.toX) == Man.W_KING) {
-                    blackThreatenMoves.add(e);
+            for (Move t : whiteMoves) {
+                boolean x = true;
+                ChessBoard chessBoard = new ChessBoard();
+                for (int row = 0; row < 8; row++) {
+                    chessBoard.chessboard[row] = this.chessBoard.chessboard[row].clone();
                 }
-
-            }
-            if (blackThreatenMoves.size() == 0) return "";
-            else if (blackThreatenMoves.size() == 1) {
-                if (generator.Bthreaten[blackThreatenMoves.get(0).fromY][blackThreatenMoves.get(0).fromX] > 0)
-                    return "";
-                else {
-                    for (Move t : whiteMoves) {
-                        if (chessBoard.get(t.fromY, t.fromX) == Man.W_KING) {
-                            isWhiteSafe = true;
-                        }
-                    }
-                    if (!isWhiteSafe) return "White Lost!";
-                }
-            } else {
-                for (Move t : whiteMoves) {
-                    if (chessBoard.get(t.fromY, t.fromX) == Man.W_KING) {
-                        isWhiteSafe = true;
+                chessBoard.execute(t);
+                ArrayList<Move> moves = generator.generateAllMoves(chessBoard, 1);
+                for (Move movew : moves) {
+                    if (this.chessBoard.get(movew.toY, movew.toX) == Man.W_KING) {
+                        x = false;
+                        break;
                     }
                 }
-                if (!isWhiteSafe) return "White Lost!";
+                isMoveSafe.add(x);
             }
+            for (boolean t : isMoveSafe) {
+                System.out.print(t);
+                System.out.print(" ");
+                if (t) return "";
+            }
+            System.out.println();
+            return "White Lost!";
         }
 
-        return "";
     }
 
     public String isBlackLose() {
         ArrayList<Move> blackMoves = generator.generateAllMoves(chessBoard, 1);
-        ArrayList<Move> whiteMoves = generator.generateAllMoves(chessBoard, 0);
+        ArrayList<Boolean> isMoveSafe = new ArrayList<>();
         ArrayList<Move> whiteThreatenMoves = new ArrayList<>();
         Move move;
         boolean isBlackSafe = false;
@@ -133,35 +129,30 @@ public class Executor {
             }
         if (!isBlackKingAlive) return "Black Lost!";
         else {
-            for (Move e : whiteMoves) {
-                if (chessBoard.get(e.toY, e.toX) == Man.B_KING) {
-                    whiteThreatenMoves.add(e);
+            for (Move t : blackMoves) {
+                boolean x = true;
+                ChessBoard chessBoard = new ChessBoard();
+                for (int row = 0; row < 8; row++) {
+                    chessBoard.chessboard[row] = this.chessBoard.chessboard[row].clone();
                 }
+                chessBoard.execute(t);
+                ArrayList<Move> moves = generator.generateAllMoves(chessBoard, 0);
+                for (Move movew : moves) {
+                    if (this.chessBoard.get(movew.toY, movew.toX) == Man.B_KING) {
 
-            }
-            if (whiteThreatenMoves.size() == 0) return "";
-            else if (whiteThreatenMoves.size() == 1) {
-                if (generator.Bthreaten[whiteThreatenMoves.get(0).fromY][whiteThreatenMoves.get(0).fromX] > 0)
-                    return "";
-                else {
-                    for (Move t : blackMoves) {
-                        if (chessBoard.get(t.fromY, t.fromX) == Man.B_KING) {
-                            isBlackSafe = true;
-                        }
-                    }
-                    if (!isBlackSafe) return "Black Lost!";
-                }
-            } else {
-                for (Move t : blackMoves) {
-                    if (chessBoard.get(t.fromY, t.fromX) == Man.B_KING) {
-                        isBlackSafe = true;
+                        x = false;
+                        break;
                     }
                 }
-                if (!isBlackSafe) return "Black Lost!";
+                isMoveSafe.add(x);
             }
+            for (boolean t : isMoveSafe) {
+                if (t) return "";
+            }
+            return "Black Lost!";
         }
 
-        return "";
+
     }
 
     public void makeMove() {
@@ -502,7 +493,7 @@ class EvaluateEngine {
                     WBaseScores.put(Man.W_QUEEN, 90.0);
                     break;
                 case Man.W_KING:
-                    WBaseScores.put(Man.W_KING, 9000.0);
+                    WBaseScores.put(Man.W_KING, 90000.0);
                     break;
                 case Man.B_PAWN:
                     WBaseScores.put(Man.B_PAWN, 10.0);
@@ -520,7 +511,7 @@ class EvaluateEngine {
                     WBaseScores.put(Man.B_QUEEN, 90.0);
                     break;
                 case Man.B_KING:
-                    WBaseScores.put(Man.B_KING, 9000.0);
+                    WBaseScores.put(Man.B_KING, 90000.0);
                     break;
                 default:
                     break;
