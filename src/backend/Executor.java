@@ -115,9 +115,6 @@ public class Executor {
     public String isBlackLose() {
         ArrayList<Move> blackMoves = generator.generateAllMoves(chessBoard, 1);
         ArrayList<Boolean> isMoveSafe = new ArrayList<>();
-        ArrayList<Move> whiteThreatenMoves = new ArrayList<>();
-        Move move;
-        boolean isBlackSafe = false;
         boolean isBlackKingAlive = false;
 
         for (int i = 0; i < 8; i++)
