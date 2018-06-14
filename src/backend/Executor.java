@@ -6,10 +6,7 @@ import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 
 public class Executor {
     int times = 0;
@@ -19,6 +16,7 @@ public class Executor {
     MoveGenerator generator;
     Move temp;
     Logger logger;
+
     HashMap<Integer, String> s = new HashMap<>();
     EvaluateEngine eva = new EvaluateEngine();
     StringBuilder builder = new StringBuilder();
@@ -42,7 +40,7 @@ public class Executor {
         try {
             FileHandler fileHandler = new FileHandler("棋谱" + java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")) + ".txt");
             fileHandler.setLevel(Level.INFO);
-            fileHandler.setFormatter(new SimpleFormatter());
+            fileHandler.setFormatter(new MyFormatter());
             logger.addHandler(fileHandler);
         } catch (Exception e) {
             e.printStackTrace();
@@ -304,6 +302,7 @@ public class Executor {
         if (isBlack(from)) {
             builder.append("\n");
             logger.info(builder.toString());
+
             builder.delete(0, builder.length());
         }
     }
@@ -521,5 +520,11 @@ class EvaluateEngine {
 
         if (currentSide == 0) return -Bscores + Wscores;
         else return -Wscores + Bscores;
+    }
+}
+
+class MyFormatter extends Formatter {
+    public String format(LogRecord record) {
+        return formatMessage(record);
     }
 }

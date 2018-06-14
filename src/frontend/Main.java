@@ -120,7 +120,8 @@ class ChessBoardPane extends GridPane {
                         @Override
                         public void run() {
 
-                            checkStatus(false);
+                            boolean terminated = checkStatus(false);
+                            if (terminated) return;
                             Stage current = (Stage) getScene().getWindow();
                             current.setTitle("thinking...");
                             executor.makeMove();
@@ -308,7 +309,7 @@ class ChessBoardPane extends GridPane {
         }
     }
 
-    private void checkStatus(boolean isAfterComputer) {
+    private boolean checkStatus(boolean isAfterComputer) {
         if (side == 0 && isAfterComputer) {
             String info = this.executor.isBlackLose();
             if (info == "Black Lost!") {
@@ -318,17 +319,22 @@ class ChessBoardPane extends GridPane {
                     Stage a = (Stage) (this.getScene().getWindow());
                     a.setScene(new Scene(new StartBox(a)));
                 });
+                return true;
             }
         }
         if (side == 1 && isAfterComputer) {
             String info = this.executor.isWhiteLose();
             if (info == "White Lost!") {
                 Alert x = new Alert(Alert.AlertType.INFORMATION, "You lose!");
+
                 x.show();
                 x.setOnCloseRequest(event -> {
+
                     Stage a = (Stage) (this.getScene().getWindow());
                     a.setScene(new Scene(new StartBox(a)));
+
                 });
+                return true;
             }
         }
         if (side == 0 && !isAfterComputer) {
@@ -340,6 +346,7 @@ class ChessBoardPane extends GridPane {
                     Stage a = (Stage) (this.getScene().getWindow());
                     a.setScene(new Scene(new StartBox(a)));
                 });
+                return true;
             }
         }
         if (side == 1 && !isAfterComputer) {
@@ -351,8 +358,10 @@ class ChessBoardPane extends GridPane {
                     Stage a = (Stage) (this.getScene().getWindow());
                     a.setScene(new Scene(new StartBox(a)));
                 });
+                return true;
             }
         }
+        return false;
     }
 
 }
