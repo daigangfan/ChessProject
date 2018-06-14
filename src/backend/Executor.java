@@ -20,6 +20,11 @@ public class Executor {
     HashMap<Integer, String> s = new HashMap<>();
     EvaluateEngine eva = new EvaluateEngine();
     StringBuilder builder = new StringBuilder();
+
+    public Logger getLogger() {
+        return logger;
+    }
+
     public Executor() {
         Zobrist.initItalian();
         chessBoard = new ChessBoard();
@@ -94,7 +99,7 @@ public class Executor {
                 chessBoard.execute(t);
                 ArrayList<Move> moves = generator.generateAllMoves(chessBoard, 1);
                 for (Move movew : moves) {
-                    if (this.chessBoard.get(movew.toY, movew.toX) == Man.W_KING) {
+                    if (chessBoard.get(movew.toY, movew.toX) == Man.W_KING) {
                         x = false;
                         break;
                     }
@@ -134,7 +139,7 @@ public class Executor {
                 chessBoard.execute(t);
                 ArrayList<Move> moves = generator.generateAllMoves(chessBoard, 0);
                 for (Move movew : moves) {
-                    if (this.chessBoard.get(movew.toY, movew.toX) == Man.B_KING) {
+                    if (chessBoard.get(movew.toY, movew.toX) == Man.B_KING) {
 
                         x = false;
                         break;

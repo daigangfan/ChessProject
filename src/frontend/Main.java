@@ -313,6 +313,7 @@ class ChessBoardPane extends GridPane {
         if (side == 0 && isAfterComputer) {
             String info = this.executor.isBlackLose();
             if (info == "Black Lost!") {
+                this.executor.getLogger().info("#");
                 Alert x = new Alert(Alert.AlertType.INFORMATION, "You lose!");
                 x.show();
                 x.setOnCloseRequest(event -> {
@@ -325,8 +326,8 @@ class ChessBoardPane extends GridPane {
         if (side == 1 && isAfterComputer) {
             String info = this.executor.isWhiteLose();
             if (info == "White Lost!") {
+                this.executor.getLogger().info("#");
                 Alert x = new Alert(Alert.AlertType.INFORMATION, "You lose!");
-
                 x.show();
                 x.setOnCloseRequest(event -> {
 
@@ -340,6 +341,7 @@ class ChessBoardPane extends GridPane {
         if (side == 0 && !isAfterComputer) {
             String info = this.executor.isWhiteLose();
             if (info == "White Lost!") {
+                this.executor.getLogger().info("#");
                 Alert x = new Alert(Alert.AlertType.INFORMATION, "You win!");
                 x.show();
                 x.setOnCloseRequest(event -> {
@@ -352,6 +354,7 @@ class ChessBoardPane extends GridPane {
         if (side == 1 && !isAfterComputer) {
             String info = this.executor.isBlackLose();
             if (info == "Black Lost!") {
+                this.executor.getLogger().info("#");
                 Alert x = new Alert(Alert.AlertType.INFORMATION, "You win!");
                 x.show();
                 x.setOnCloseRequest(event -> {
