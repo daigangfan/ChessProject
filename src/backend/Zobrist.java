@@ -12,7 +12,7 @@ public class Zobrist {
         for (int i = 0; i < 13; i++)
             for (int j = 0; j < 8; j++)
                 for (int k = 0; k < 8; k++)
-                    hashValues[i][j][k] = rand.nextInt();
+                    hashValues[i][j][k] = Math.abs(rand.nextInt());
 
 
     }
@@ -74,7 +74,7 @@ public class Zobrist {
         move = new Move(5, 2, 3, 3);
         ItalianStart[chessBoard.hashCode() % size] = move;
         chessBoard.execute(move);
-        move = new Move(7, 3, 1, 5);
+        move = new Move(3, 7, 1, 5);
         ItalianStart[chessBoard.hashCode() % size] = move;
         chessBoard.execute(move);
         move = new Move(2, 2, 4, 1);
@@ -94,7 +94,7 @@ public class Zobrist {
         move = new Move(2, 1, 2, 2);
         ItalianStart[chessBoard.hashCode() % size] = move;
         chessBoard.execute(move);
-        
+
 
     }
 

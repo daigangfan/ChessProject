@@ -21,11 +21,13 @@ public class Executor {
     Logger logger;
     HashMap<Integer, String> s = new HashMap<>();
     EvaluateEngine eva = new EvaluateEngine();
+    StringBuilder builder = new StringBuilder();
     public Executor() {
+        Zobrist.initItalian();
         chessBoard = new ChessBoard();
         generator = new MoveGenerator();
         logger = Logger.getLogger("chessMove");
-        System.out.println(java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")));
+
         String path = "棋谱" + java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss")) + ".txt";
         File file = new File(path);
         if (!file.exists()) {
@@ -46,18 +48,18 @@ public class Executor {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "不能创建棋谱,将在控制台显示！").show();
         }
-        s.put(Man.B_PAWN, "黑兵");
-        s.put(Man.W_PAWN, "白兵");
-        s.put(Man.W_ROOK, "白车");
-        s.put(Man.B_ROOK, "黑车");
-        s.put(Man.W_KNIGHT, "白马");
-        s.put(Man.B_KNIGHT, "黑马");
-        s.put(Man.W_QUEEN, "白后");
-        s.put(Man.B_QUEEN, "黑后");
-        s.put(Man.B_BISHOP, "黑象");
-        s.put(Man.W_BISHOP, "白象");
-        s.put(Man.B_KING, "黑王");
-        s.put(Man.W_KING, "白王");
+        s.put(Man.B_PAWN, "");
+        s.put(Man.W_PAWN, "");
+        s.put(Man.W_ROOK, "R");
+        s.put(Man.B_ROOK, "R");
+        s.put(Man.W_KNIGHT, "N");
+        s.put(Man.B_KNIGHT, "N");
+        s.put(Man.W_QUEEN, "Q");
+        s.put(Man.B_QUEEN, "Q");
+        s.put(Man.B_BISHOP, "B");
+        s.put(Man.W_BISHOP, "B");
+        s.put(Man.B_KING, "K");
+        s.put(Man.W_KING, "K");
     }
 
     public int getSide() {
@@ -102,11 +104,10 @@ public class Executor {
                 isMoveSafe.add(x);
             }
             for (boolean t : isMoveSafe) {
-                System.out.print(t);
-                System.out.print(" ");
+
                 if (t) return "";
             }
-            System.out.println();
+
             return "White Lost!";
         }
 
@@ -153,73 +154,21 @@ public class Executor {
     }
 
     public void makeMove() {
-        //意大利开局
-        Move move;
-        if (side == 0) {
-            switch (times) {
-                case 0:
-                    move = new Move(4, 6, 4, 4);
-                    execute(move);
 
 
-                    break;
-                case 2:
-                    move = new Move(6, 7, 5, 5);
-                    execute(move);
+        Move move = Zobrist.ItalianStart[chessBoard.hashCode() % Zobrist.size];
+        if (move != null) {
+            execute(move);
+        } else {
+            searchMove();
 
+            execute(temp);
 
-                    break;
-                case 4:
-                    move = new Move(5, 7, 2, 4);
-                    execute(move);
-
-
-                    break;
-                default:
-                    break;
-            }
-
-            if (times > 5) {
-                searchMove();
-                execute(temp);
-
-
-            }
         }
-        if (side == 1) {
-            switch (times) {
-                case 1:
-                    move = new Move(4, 1, 4, 3);
-                    execute(move);
-
-
-                    break;
-                case 3:
-                    move = new Move(1, 0, 2, 2);
-                    execute(move);
-
-
-                    break;
-                case 5:
-
-                    move = new Move(5, 0, 2, 3);
-                    execute(move);
-
-                    break;
-                default:
-                    break;
-            }
-            if (times > 6) {
-                searchMove();
-                execute(temp);
-
-            }
-        }
-
     }
 
     private void searchMove() {
-        double score = negaMax(chessBoard, maxDepth, -20000.0, 20000.0);
+        double score = negaMax(chessBoard, maxDepth, -200000.0, 200000.0);
 
     }
 
@@ -252,9 +201,11 @@ public class Executor {
                 newChessBoard.chessboard[row] = chessBoard1.chessboard[row].clone();
             newChessBoard.execute(x);
             score = -negaMax(newChessBoard, depth - 1, -beta, -alpha);
+
             if (score > alpha) {
                 alpha = score;
                 if (depth == maxDepth) {
+
                     temp = x;
                 }
                 if (alpha >= beta) {
@@ -308,54 +259,53 @@ public class Executor {
     }
 
     public void logg(Move move) {
-        StringBuilder builder = new StringBuilder();
+
         int from = this.chessBoard.get(move.fromY, move.fromX);
         int to = this.chessBoard.get(move.toY, move.toX);
-        if (!move.isShortCastling && !move.isLongCastling && !move.isPromotion) {
-            builder = builder.append(times);
-            builder = builder.append(". ");
-            builder = builder.append(s.get(from));
-            builder = builder.append((char) (move.fromX + 65));
-            builder = builder.append(move.fromY + 1);
-            builder = builder.append("-");
-            builder = builder.append((char) (move.toX + 65));
-            builder = builder.append(move.toY + 1);
-            builder = builder.append("\n");
+        if (isWhite(from)) {
+            builder.append(((int) (times / 2) + 1));
+            builder.append(".");
+        }
+
+        if (!move.isPromotion && !move.isShortCastling && !move.isLongCastling && !move.isEP) {
+            builder.append(s.get(from));
+            if (to == 0) {
+                builder.append((char) (move.toX + 97));
+                builder.append(8 - move.toY);
+
+            } else {
+                if (s.get(from).equals(""))
+                    builder.append((char) (move.fromX + 97));
+                builder.append("x");
+                builder.append((char) (move.toX + 97));
+                builder.append(8 - move.toY);
+            }
         }
         if (move.isPromotion) {
-            builder = builder.append(times);
-            builder = builder.append(". ");
-            builder.append((char) (move.fromX + 65));
-            builder.append("升为：");
+            builder.append((char) (move.toX + 97));
+            builder.append(8 - move.toY);
+            builder.append("=");
             builder.append(s.get(move.promotionType));
-            builder = builder.append("\n");
         }
         if (move.isLongCastling) {
-            builder = builder.append(times);
-            builder = builder.append(". ");
-            builder = builder.append(s.get(from));
             builder.append("0-0-0");
-            builder.append("\n");
         }
         if (move.isShortCastling) {
-            builder = builder.append(times);
-            builder = builder.append(". ");
-            builder.append(s.get(from));
             builder.append("0-0");
-            builder.append("\n");
         }
         if (move.isEP) {
-            builder = builder.append(times);
-            builder = builder.append(". ");
-            builder.append("EP:");
-            builder = builder.append((char) (move.fromX + 65));
-            builder = builder.append(move.fromY + 1);
-            builder = builder.append("-");
-            builder = builder.append((char) (move.toX + 65));
-            builder = builder.append(move.toY + 1);
-            builder = builder.append("\n");
+            builder.append((char) (move.fromX + 97));
+            builder.append("x");
+            builder.append((char) (move.toX + 97));
+            builder.append(8 - move.toY);
+            builder.append("E.P.");
         }
-        logger.info(builder.toString());
+        builder.append("  ");
+        if (isBlack(from)) {
+            builder.append("\n");
+            logger.info(builder.toString());
+            builder.delete(0, builder.length());
+        }
     }
 }
 

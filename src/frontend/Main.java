@@ -64,6 +64,7 @@ public class Main extends Application {
         primaryStage.setScene(startScene);
         primaryStage.show();
         primaryStage.setTitle("chess v1.0.0");
+        primaryStage.setAlwaysOnTop(true);
     }
 }
 

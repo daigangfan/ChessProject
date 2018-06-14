@@ -98,7 +98,7 @@ public class MoveGenerator {
                         Wthreaten[i+1][j-1]++;
                     if (i >= 1 && j < 7)
                         Wthreaten[i-1][j+1]++;
-                    if (i >= 1 && j >= 1)
+                    if (i < 7 && j < 7)
                         Wthreaten[i+1][j+1]++;
                     if (i >= 1)
                         Wthreaten[i-1][j]++;

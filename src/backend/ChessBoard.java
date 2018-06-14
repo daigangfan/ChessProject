@@ -2,7 +2,8 @@ package backend;
 
 public class ChessBoard {
     int[][] chessboard;
-
+    int hashValue;
+    Zobrist zobrist = new Zobrist();
     //电脑方向，0白1黑
     public ChessBoard(){
         chessboard=new int[8][8];
@@ -64,10 +65,12 @@ public class ChessBoard {
                     default:break;
                 }
             }
+        hashValue = zobrist.getHashValue(this);
     }
 
 
     public void execute(Move move){
+        updateHashCode(move);
         if (!move.isPromotion && !move.isLongCastling && !move.isShortCastling && !move.isEP) {
             chessboard[move.toY][move.toX]=chessboard[move.fromY][move.fromX];
             chessboard[move.fromY][move.fromX]=0;
@@ -90,42 +93,45 @@ public class ChessBoard {
             if (move.toY == 0) this.execute(new Move(7, 0, 5, 0));
             if (move.toY == 7) this.execute(new Move(7, 7, 5, 7));
         }
-    }
-
-    public void deExecute(Move move, int nToID) {
-        if (!move.isPromotion && !move.isLongCastling && !move.isShortCastling) {
-            chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
-            chessboard[move.toY][move.toX] = nToID;
-        } else {
-            if (move.isPromotion) {
-                chessboard[move.toY][move.toX] = nToID;
-                chessboard[move.fromY][move.fromX] = move.fromY == 6 ? Man.B_PAWN : Man.W_PAWN;
-            }
-            if (move.isLongCastling) {
-                chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
-                chessboard[move.toY][move.toX] = Man.NONE;
-                if (move.toY == 0) {
-                    this.deExecute(new Move(0, 0, 3, 0), Man.NONE);
-                }
-                if (move.toY == 7) {
-                    this.deExecute(new Move(0, 7, 3, 7), Man.NONE);
-                }
-            }
-            if (move.isShortCastling) {
-                chessboard[move.fromY][move.fromX] = chessboard[move.toY][move.toX];
-                chessboard[move.toY][move.toX] = Man.NONE;
-                if (move.toY == 0) {
-                    this.deExecute(new Move(7, 0, 5, 0), Man.NONE);
-                }
-                if (move.toY == 7) {
-                    this.deExecute(new Move(7, 7, 5, 7), Man.NONE);
-                }
-            }
-        }
 
     }
-    public int get(int Y,int X){
+
+
+    public int get(int Y, int X){
         return chessboard[Y][X];
+
+    }
+
+    public int hashCode() {
+        return hashValue;
+    }
+
+    public void updateHashCode(Move move) {
+        int nFromID = this.get(move.fromY, move.fromX);
+        int nToID = this.get(move.toY, move.toX);
+        if (move.isEP) {
+            hashValue ^= zobrist.hashValues[nFromID][move.fromY][move.fromX];
+            hashValue ^= zobrist.hashValues[nFromID][move.toY][move.toX];
+            if (Man.isWhite(get(move.fromY, move.fromX)))
+                hashValue ^= zobrist.hashValues[Man.B_PAWN][move.toY + 1][move.toX];
+            if (Man.isBlack(get(move.fromY, move.fromX)))
+                hashValue ^= zobrist.hashValues[Man.W_PAWN][move.toY - 1][move.toX];
+        } else if (move.isShortCastling || move.isLongCastling) {
+            hashValue ^= zobrist.hashValues[nFromID][move.fromY][move.fromX];
+            hashValue ^= zobrist.hashValues[nFromID][move.toY][move.toX];
+        } else if (move.isPromotion) {
+            hashValue ^= zobrist.hashValues[nFromID][move.fromY][move.fromX];
+            if (nToID != 0) {
+                hashValue ^= zobrist.hashValues[nToID][move.toY][move.toX];
+            }
+            hashValue ^= zobrist.hashValues[move.promotionType][move.fromY][move.fromX];
+        } else {
+            hashValue ^= zobrist.hashValues[nFromID][move.fromY][move.fromX];
+            if (nToID != 0) {
+                hashValue ^= zobrist.hashValues[nToID][move.toY][move.toX];
+            }
+            hashValue ^= zobrist.hashValues[nFromID][move.toY][move.toX];
+        }
 
     }
 }
