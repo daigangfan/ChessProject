@@ -5,6 +5,7 @@ import javafx.scene.control.Alert;
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.*;
 
@@ -196,7 +197,7 @@ public class Executor {
         }
         double score;
         ArrayList<Move> moves = generator.generateAllMoves(chessBoard, currentSide);
-//        Collections.shuffle(moves);
+        Collections.shuffle(moves);
 
         for (Move x : moves) {
             ChessBoard newChessBoard = new ChessBoard();

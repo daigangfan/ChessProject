@@ -302,7 +302,7 @@ public class MoveGenerator {
                     }
                 }
                 if (move.fromY != 6) {
-                    if (move.fromY == 1 && move.toY - move.fromY == 2 && nTargetID == Man.NONE && move.toX == move.fromX)
+                    if (move.fromY == 1 && move.toY - move.fromY == 2 && nTargetID == Man.NONE && chessBoard.get(move.toY - 1, move.toX) == Man.NONE && move.toX == move.fromX)
                         return true;
                     if (move.toY - move.fromY == 1 && move.toX == move.fromX && nTargetID == Man.NONE) return true;
                     if (move.toY - move.fromY == 1 && Math.abs(move.toX - move.fromX) == 1 && nTargetID != Man.NONE)
@@ -323,7 +323,7 @@ public class MoveGenerator {
                     }
                 }
                 if (move.fromY != 1) {
-                    if (move.fromY == 6 && move.toY - move.fromY == -2 && nTargetID == Man.NONE && move.toX == move.fromX)
+                    if (move.fromY == 6 && move.toY - move.fromY == -2 && chessBoard.get(move.toY + 1, move.toX) == Man.NONE && nTargetID == Man.NONE && move.toX == move.fromX)
                     return true;
                     if (move.toY - move.fromY == -1 && move.toX == move.fromX && nTargetID == Man.NONE)
                     return true;
