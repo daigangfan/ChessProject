@@ -445,7 +445,7 @@ public class MoveGenerator {
                 } else if (move.isLongCastling) {
                     if (move.fromY == 0 && move.fromX == 4 && canBlackLongCastling) {
                         if (Bthreaten[0][2] == 0 && Bthreaten[0][3] == 0 && Bthreaten[0][4] == 0) {
-                            if (chessBoard.get(0, 2) == Man.NONE && chessBoard.get(0, 3) == Man.NONE && chessBoard.get(7, 1) == Man.NONE)
+                            if (chessBoard.get(0, 2) == Man.NONE && chessBoard.get(0, 3) == Man.NONE && chessBoard.get(0, 1) == Man.NONE)
                                 return true;
                         }
                     }
@@ -461,7 +461,8 @@ public class MoveGenerator {
 
                     if (move.fromY == 7 && move.fromX == 4 && canWhiteShortCastling) {
                         if (Wthreaten[7][4] == 0 && Wthreaten[7][5] == 0 && Wthreaten[7][6] == 0) {
-                            return true;
+                            if (chessBoard.get(7, 5) == Man.NONE && chessBoard.get(7, 6) == Man.NONE)
+                                return true;
                         }
                     }
                 } else if (move.isLongCastling) {
