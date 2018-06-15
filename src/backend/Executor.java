@@ -531,6 +531,6 @@ class EvaluateEngine {
 
 class MyFormatter extends Formatter {
     public String format(LogRecord record) {
-        return formatMessage(record);
+        return formatMessage(record) + "\r\n";
     }
 }
