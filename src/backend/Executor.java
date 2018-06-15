@@ -304,6 +304,16 @@ public class Executor {
             builder.append(8 - move.toY);
             builder.append("E.P.");
         }
+        if (isWhite(from)) {
+            boolean threatened = checkBlackThreaten(move);
+            if (threatened)
+                builder.append("+");
+        }
+        if (isBlack(from)) {
+            boolean threatened = checkWhiteThreaten(move);
+            if (threatened)
+                builder.append("+");
+        }
         builder.append("  ");
         if (isBlack(from)) {
             builder.append("\n");
@@ -311,6 +321,38 @@ public class Executor {
 
             builder.delete(0, builder.length());
         }
+    }
+
+    private boolean checkWhiteThreaten(Move move) {
+        MoveGenerator gen = new MoveGenerator();
+        ChessBoard chessBoard1 = new ChessBoard();
+        for (int row = 0; row < 8; row++)
+            chessBoard1.chessboard[row] = this.chessBoard.chessboard[row].clone();
+        chessBoard1.execute(move);
+        gen.updateThreatenMatrix(chessBoard1);
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++) {
+                if (chessBoard1.get(i, j) == Man.W_KING) {
+                    if (gen.Wthreaten[i][j] > 0) return true;
+                }
+            }
+        return false;
+    }
+
+    private boolean checkBlackThreaten(Move move) {
+        MoveGenerator gen = new MoveGenerator();
+        ChessBoard chessBoard1 = new ChessBoard();
+        for (int row = 0; row < 8; row++)
+            chessBoard1.chessboard[row] = this.chessBoard.chessboard[row].clone();
+        chessBoard1.execute(move);
+        gen.updateThreatenMatrix(chessBoard1);
+        for (int i = 0; i < 8; i++)
+            for (int j = 0; j < 8; j++) {
+                if (chessBoard1.get(i, j) == Man.B_KING) {
+                    if (gen.Bthreaten[i][j] > 0) return true;
+                }
+            }
+        return false;
     }
 }
 
